@@ -20,11 +20,24 @@ if (!fs.existsSync(INVOICE_DIR)) {
 
 // Fungsi Helper untuk generate Nomor Invoice Unik (Contoh sederhana)
 const generateInvoiceNumber = async (umkmId) => {
-    // Format: INV-[UMKM ID]-[TAHUN]-[SEQUENCE]
-    const year = new Date().getFullYear();
+    // Format: INV-[UMKM ID]-[YYMMDD-HHMMSS]-[SEQUENCE]
+    const now = new Date();
+
+    const year = now.getFullYear();
+    // Tambahkan 1 karena getMonth() mengembalikan 0-11
+    const month = String(now.getMonth() + 1).padStart(2, '0'); 
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateString = `${year}${month}${day}`;
+
+    // WAKTU (HHMMSS)
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeString = `${hours}${minutes}${seconds}`;
+
     const count = await Invoice.count({}); 
     const sequence = String(count + 1).padStart(4, '0');
-    return `INV-${umkmId}-${year}-${sequence}`;
+    return `INV-${umkmId}-${dateString}-${timeString}-${sequence}`;
 };
 
 // --- 1. MEMBUAT INVOICE DARI TRANSAKSI ---
@@ -133,18 +146,18 @@ const generatePdfFile = (transaction, nomorInvoice, filePath, umkmData) => {
         // --- HELPER UNTUK MENGGAMBAR GARIS ---
         const drawLine = (y, thickness = 0.5, color = '#cccccc') => {
             doc.strokeColor(color)
-               .lineWidth(thickness)
-               .moveTo(50, y)
-               .lineTo(doc.page.width - 50, y)
-               .stroke();
+                .lineWidth(thickness)
+                .moveTo(50, y)
+                .lineTo(doc.page.width - 50, y)
+                .stroke();
         };
 
 
         doc.fontSize(10)
-           .fillColor('#4b5563') // Warna abu-abu teks sekunder
-           .text(umkmData.nama_umkm.toUpperCase(), 50, 50, { align: 'left' }); 
+            .fillColor('#4b5563') // Warna abu-abu teks sekunder
+            .text(umkmData.nama_umkm.toUpperCase(), 50, 50, { align: 'left' }); 
         
-        doc.text(`NO. ${nomorInvoice}`, doc.page.width - 150, 50, { width: 100, align: 'right' });
+        doc.text(`NO. ${nomorInvoice}`, doc.page.width - 250, 50, { width: 200, align: 'right' });
         
         doc.moveDown(0.5); // Memberi sedikit jarak
         doc.fontSize(28)

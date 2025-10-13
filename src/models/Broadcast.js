@@ -9,7 +9,7 @@ const Broadcast = sequelize.define("Broadcast", {
   tanggal_kirim: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   status: { type: DataTypes.STRING(50) }
 }, {
-  tableName: "BROADCAST",
+  tableName: "broadcast",
   timestamps: false
 });
 

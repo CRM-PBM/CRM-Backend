@@ -1,0 +1,278 @@
+{
+  "info": {
+    "name": "CRM Backend API",
+    "description": "Collection untuk testing REST API CRM Backend (Pelanggan & Transaksi)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "Get All Pelanggan",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan?page=1&limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Pelanggan with Filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan?gender=Pria&level=VIP",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan"],
+          "query": [
+            {
+              "key": "gender",
+              "value": "Pria"
+            },
+            {
+              "key": "level",
+              "value": "VIP"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Pelanggan",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan?search=john",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan"],
+          "query": [
+            {
+              "key": "search",
+              "value": "john"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Pelanggan by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan", "1"]
+        }
+      }
+    },
+    {
+      "name": "Create Pelanggan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nama\": \"John Doe\",\n  \"telepon\": \"08123456789\",\n  \"email\": \"john@example.com\",\n  \"gender\": \"Pria\",\n  \"level\": \"VIP\",\n  \"umkm_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan"]
+        }
+      }
+    },
+    {
+      "name": "Update Pelanggan",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nama\": \"John Doe Updated\",\n  \"level\": \"Gold\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete Pelanggan",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/pelanggan/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "pelanggan", "1"]
+        }
+      }
+    },
+    {
+      "name": "Get All Transaksi",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/transaksi?page=1&limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Transaksi by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/transaksi/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi", "1"]
+        }
+      }
+    },
+    {
+      "name": "Create Transaksi",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pelanggan_id\": 1,\n  \"metode_pembayaran\": \"Cash\",\n  \"keterangan\": \"Transaksi toko\",\n  \"items\": [\n    {\n      \"produk_id\": 1,\n      \"jumlah\": 2\n    },\n    {\n      \"produk_id\": 2,\n      \"jumlah\": 1\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transaksi",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi"]
+        }
+      }
+    },
+    {
+      "name": "Update Transaksi",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"metode_pembayaran\": \"Transfer\",\n  \"keterangan\": \"Dibayar via transfer\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transaksi/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete Transaksi",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/transaksi/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi", "1"]
+        }
+      }
+    },
+    {
+      "name": "Get Statistik Transaksi",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/transaksi/statistik",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi", "statistik"]
+        }
+      }
+    },
+    {
+      "name": "Filter Transaksi by Date",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/transaksi?start_date=2025-01-01&end_date=2025-12-31",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transaksi"],
+          "query": [
+            {
+              "key": "start_date",
+              "value": "2025-01-01"
+            },
+            {
+              "key": "end_date",
+              "value": "2025-12-31"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "info": {
+    "name": "CRM Backend - Broadcast API",
+    "description": "Collection untuk testing REST API Broadcast WhatsApp dengan Watzap.id",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Check Device Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast/device/status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast", "device", "status"]
+        },
+        "description": "Cek status koneksi WhatsApp device"
+      }
+    },
+    {
+      "name": "Get All Broadcast",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast?page=1&limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Broadcast by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast", "1"]
+        }
+      }
+    },
+    {
+      "name": "Create Broadcast (Draft)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"judul_pesan\": \"Promo Akhir Tahun\",\n  \"isi_pesan\": \"Halo {nama}, dapatkan diskon 50% untuk semua produk! Hubungi kami di {telepon}\",\n  \"pelanggan_ids\": [1, 2, 3]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/broadcast",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast"]
+        },
+        "description": "Buat broadcast draft dengan list pelanggan"
+      }
+    },
+    {
+      "name": "Send Broadcast",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast/1/send",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast", "1", "send"]
+        },
+        "description": "Kirim broadcast ke semua penerima yang pending"
+      }
+    },
+    {
+      "name": "Delete Broadcast",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast", "1"]
+        }
+      }
+    },
+    {
+      "name": "Get Statistik Broadcast",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast/statistik",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast", "statistik"]
+        }
+      }
+    },
+    {
+      "name": "Filter Broadcast by Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast?status=draft",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast"],
+          "query": [
+            {
+              "key": "status",
+              "value": "draft"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Broadcast",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/broadcast?search=promo",
+          "host": ["{{base_url}}"],
+          "path": ["api", "broadcast"],
+          "query": [
+            {
+              "key": "search",
+              "value": "promo"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

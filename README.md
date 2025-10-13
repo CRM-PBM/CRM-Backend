@@ -4,6 +4,13 @@ Backend API untuk sistem CRM (Customer Relationship Management) UMKM menggunakan
 
 ## 📋 Fitur Utama
 
+### 🔐 Autentikasi & Authorization
+- JWT (JSON Web Token) authentication
+- Register & Login
+- Protected routes (harus login)
+- Password hashing dengan bcrypt
+- Token expiration management
+
 ### ✅ API Pelanggan
 - CRUD pelanggan lengkap
 - Pagination & filtering
@@ -60,6 +67,17 @@ Server akan berjalan di `http://localhost:3000`
 
 Base URL: `http://localhost:3000/api`
 
+### 🔐 Autentikasi (Public - No Token Required)
+- `POST /api/auth/register` - Registrasi UMKM & User baru
+- `POST /api/auth/login` - Login & dapatkan JWT token
+
+📖 [Dokumentasi lengkap](./README-AUTH.md)
+
+### ✅ Protected Endpoints (Requires JWT Token)
+
+> **⚠️ Semua endpoint di bawah ini memerlukan JWT token di header:**  
+> `Authorization: Bearer YOUR_TOKEN_HERE`
+
 ### Pelanggan
 - `GET /api/pelanggan` - Get all
 - `GET /api/pelanggan/:id` - Get by ID
@@ -100,6 +118,9 @@ Base URL: `http://localhost:3000/api`
 ## 🧪 Testing
 
 ```bash
+# Test Autentikasi (Login, Register, Token)
+node tests/test-auth.js
+
 # Test API Pelanggan
 node tests/test-pelanggan-api.js
 
@@ -117,12 +138,17 @@ Import `docs/postman-collection.json` ke Postman.
 - Node.js + Express.js v5
 - Sequelize ORM v6
 - MySQL
+- JWT (JSON Web Token) - Authentication
+- bcrypt - Password hashing
 - Axios (HTTP client & testing)
 - Dotenv (environment variables)
 - Watzap.id API (WhatsApp integration)
 
 ## 💡 Fitur Khusus
 
+- **JWT Authentication**: Sistem login dengan token untuk keamanan
+- **Protected Routes**: Hanya user yang login bisa akses data
+- **Password Hashing**: Bcrypt untuk enkripsi password
 - **Auto-generate nomor transaksi**: Format TRX-YYYYMMDD-XXXX
 - **Manajemen stok otomatis**: Berkurang saat beli, kembali saat delete
 - **Database transaction**: Untuk data consistency
@@ -134,6 +160,7 @@ Import `docs/postman-collection.json` ke Postman.
 ## 📖 Dokumentasi Lengkap
 
 ### API Documentation
+- [🔐 Autentikasi & Authorization](./README-AUTH.md) - **Login, Register, JWT Token**
 - [API Pelanggan](./README-API-PELANGGAN.md)
 - [API Transaksi](./README-API-TRANSAKSI.md)
 - [API Broadcast WhatsApp](./README-API-BROADCAST.md)

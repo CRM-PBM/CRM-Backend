@@ -13,11 +13,12 @@ class PelangganService {
     if (umkm_id) where.umkm_id = umkm_id;
     if (level) where.level = level;
     if (gender) where.gender = gender;
-    if (search) {
+    if (search) { 
       where[Op.or] = [
         { nama: { [Op.like]: `%${search}%` } },
         { email: { [Op.like]: `%${search}%` } },
-        { telepon: { [Op.like]: `%${search}%` } }
+        { telepon: { [Op.like]: `%${search}%` } },
+        { alamat: { [Op.like]: `%${search}%` } }
       ];
     }
 
@@ -55,7 +56,7 @@ class PelangganService {
 
   // Create new pelanggan
   async createPelanggan(data) {
-    const { nama, telepon, email, gender, level, umkm_id } = data;
+    const { nama, telepon, email, gender, alamat, level, umkm_id } = data;
 
     // Validasi data wajib
     if (!nama) {
@@ -75,6 +76,7 @@ class PelangganService {
       telepon,
       email,
       gender,
+      alamat,
       level,
       umkm_id
     });
@@ -90,13 +92,13 @@ class PelangganService {
       throw new Error('Pelanggan tidak ditemukan');
     }
 
-    const { nama, telepon, email, gender, level, umkm_id } = data;
+    const { nama, telepon, email, gender, alamat, level, umkm_id } = data;
 
     // Cek email jika diubah
     if (email && email !== pelanggan.email) {
       const existingEmail = await Pelanggan.findOne({ where: { email } });
       if (existingEmail) {
-        throw new Error('Email sudah terdaftar');
+        throw new Error('Email sudah terdaftar'); 
       }
     }
 
@@ -106,6 +108,7 @@ class PelangganService {
       email: email !== undefined ? email : pelanggan.email,
       gender: gender || pelanggan.gender,
       level: level !== undefined ? level : pelanggan.level,
+      alamat: alamat !== undefined ? alamat : pelanggan.alamat,
       umkm_id: umkm_id || pelanggan.umkm_id,
       updated_at: new Date()
     });

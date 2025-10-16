@@ -7,7 +7,7 @@ const Pelanggan = sequelize.define("Pelanggan", {
   nama: { type: DataTypes.STRING(100), allowNull: false },
   telepon: { type: DataTypes.STRING(20) },
   email: { type: DataTypes.STRING(100) },
-  alamat: { type: DataTypes.TEXT },
+  alamat: { type: DataTypes.TEXT }, 
   gender: { type: DataTypes.ENUM("Pria", "Wanita") },
   level: { type: DataTypes.STRING(50) },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },

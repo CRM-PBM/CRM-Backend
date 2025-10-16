@@ -10,7 +10,7 @@ class PelangganController {
         limit: req.query.limit,
         umkm_id: req.query.umkm_id,
         level: req.query.level,
-        gender: req.query.gender,
+        gender: req.query.gender, 
         search: req.query.search
       };
 

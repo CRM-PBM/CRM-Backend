@@ -3,17 +3,24 @@ const Pelanggan = require('../models/Pelanggan');
 const Umkm = require('../models/Umkm');
 
 class PelangganService {
+
+  getMonthDateRange(date) {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+    return { start, end };
+  }
+
   // Get all pelanggan dengan pagination dan filter
-  async getAllPelanggan(filters = {}) {
+  async getAllPelanggan(filters = {}, umkmId) {
     const { page = 1, limit = 10, umkm_id, level, gender, search } = filters;
     const offset = (page - 1) * limit;
 
-    const where = {};
-    
+    const where = { umkm_id: umkmId };
+
     if (umkm_id) where.umkm_id = umkm_id;
     if (level) where.level = level;
     if (gender) where.gender = gender;
-    if (search) { 
+    if (search) {
       where[Op.or] = [
         { nama: { [Op.like]: `%${search}%` } },
         { email: { [Op.like]: `%${search}%` } },
@@ -54,21 +61,15 @@ class PelangganService {
     return pelanggan;
   }
 
-  // Create new pelanggan
+  // Create pelanggan baru
   async createPelanggan(data) {
     const { nama, telepon, email, gender, alamat, level, umkm_id } = data;
 
-    // Validasi data wajib
-    if (!nama) {
-      throw new Error('Nama pelanggan wajib diisi');
-    }
+    if (!nama) throw new Error('Nama pelanggan wajib diisi');
 
-    // Cek apakah email sudah terdaftar
     if (email) {
       const existingEmail = await Pelanggan.findOne({ where: { email } });
-      if (existingEmail) {
-        throw new Error('Email sudah terdaftar');
-      }
+      if (existingEmail) throw new Error('Email sudah terdaftar');
     }
 
     const pelanggan = await Pelanggan.create({
@@ -88,18 +89,13 @@ class PelangganService {
   async updatePelanggan(id, data) {
     const pelanggan = await Pelanggan.findByPk(id);
 
-    if (!pelanggan) {
-      throw new Error('Pelanggan tidak ditemukan');
-    }
+    if (!pelanggan) throw new Error('Pelanggan tidak ditemukan');
 
     const { nama, telepon, email, gender, alamat, level, umkm_id } = data;
 
-    // Cek email jika diubah
     if (email && email !== pelanggan.email) {
       const existingEmail = await Pelanggan.findOne({ where: { email } });
-      if (existingEmail) {
-        throw new Error('Email sudah terdaftar'); 
-      }
+      if (existingEmail) throw new Error('Email sudah terdaftar');
     }
 
     await pelanggan.update({
@@ -120,9 +116,7 @@ class PelangganService {
   async deletePelanggan(id) {
     const pelanggan = await Pelanggan.findByPk(id);
 
-    if (!pelanggan) {
-      throw new Error('Pelanggan tidak ditemukan');
-    }
+    if (!pelanggan) throw new Error('Pelanggan tidak ditemukan');
 
     await pelanggan.destroy();
     return { message: 'Pelanggan berhasil dihapus' };
@@ -150,6 +144,52 @@ class PelangganService {
       }
     };
   }
+
+  // Statistik pelanggan per UMKM
+  async getStatistik(umkmId) {
+    const today = new Date();
+    const { start: startOfMonth, end: endOfMonth } = this.getMonthDateRange(today);
+
+    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
+
+    const umkmWhere = { umkm_id: umkmId };
+
+    // Total pelanggan keseluruhan
+    const total = await Pelanggan.count({ where: umkmWhere });
+
+    // Pelanggan baru bulan ini
+    const baruBulanIni = await Pelanggan.count({
+      where: {
+        ...umkmWhere,
+        created_at: { [Op.between]: [startOfMonth, endOfMonth] },
+      },
+    });
+
+    // Pelanggan baru bulan lalu
+    const baruBulanLalu = await Pelanggan.count({
+      where: {
+        ...umkmWhere,
+        created_at: { [Op.between]: [lastMonthStart, lastMonthEnd] },
+      },
+    });
+
+    // Hitung pertumbuhan (%)
+    let pertumbuhan = 0;
+    if (baruBulanLalu > 0) {
+      pertumbuhan = ((baruBulanIni - baruBulanLalu) / baruBulanLalu) * 100;
+    } else if (baruBulanIni > 0) {
+      pertumbuhan = 100;
+    }
+
+    return {
+      total,
+      baru_bulan_ini: baruBulanIni,
+      pertumbuhan: parseFloat(pertumbuhan.toFixed(1)),
+    };
+  }
+
+
 }
 
 module.exports = new PelangganService();

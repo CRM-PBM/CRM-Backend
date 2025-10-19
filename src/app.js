@@ -5,6 +5,8 @@ const errorHandler = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes')
+const transaksiRoutes = require('./routes/transaksiRoutes')
+const pelangganRoutes = require('./routes/pelanggan')
 
 const app = express();
 
@@ -24,6 +26,9 @@ app.use(express.static('public'));
 app.use('/api', routes);
 app.use('/api/auth', authRoutes); 
 app.use('/api/invoice', invoiceRoutes);
+app.use('/api/transaksi', transaksiRoutes);
+app.use('/api/pelanggan', pelangganRoutes);
+
 
 // health endpoint
 app.get('/', (req, res) => res.send('CRM Backend API'));

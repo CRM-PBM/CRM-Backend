@@ -9,7 +9,13 @@ const Umkm = require('../models/Umkm');
 
 class TransaksiService {
 
-    
+    async generateKodeTransaksi(umkmId, pelangganId, transaksiId) {
+        const umkmCode = String(umkmId).padStart(2, '0');      
+        const pelangganCode = String(pelangganId).padStart(2, '0');
+        const transaksiCode = String(transaksiId).padStart(3, '0'); 
+
+        return `TRX${umkmCode}${pelangganCode}${transaksiCode}`;
+    }
     
     // Helper: Mendapatkan tanggal awal dan akhir bulan
     getMonthDateRange(date) {
@@ -259,7 +265,7 @@ class TransaksiService {
 
   // Create new transaksi dengan detail items
   async createTransaksi(data) {
-    const { pelanggan_id, items, metode_pembayaran, keterangan } = data;
+    const { pelanggan_id, items, metode_pembayaran, keterangan, umkm_id } = data;
 
     // Validasi
     if (!items || items.length === 0) {
@@ -318,8 +324,18 @@ class TransaksiService {
         tanggal_transaksi: new Date(),
         total,
         metode_pembayaran,
-        keterangan
+        keterangan,
+        umkm_id
       }, { transaction: t });
+
+      // Generate kode transaksi
+      const kode_transaksi = await this.generateKodeTransaksi(
+        umkm_id, 
+        pelanggan_id, 
+        transaksi.transaksi_id
+      );
+      
+      await transaksi.update({ kode_transaksi }, { transaction: t });
 
       // Create detail transaksi
       for (const item of validatedItems) {

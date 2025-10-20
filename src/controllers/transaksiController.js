@@ -55,8 +55,14 @@ class TransaksiController {
 
     // POST /api/transaksi - Create new transaksi
     async createTransaksi(req, res, next) {
+        const umkmId = req.umkmId; // Ambil ID dari token
+        const dataToSend = {
+            ...req.body,
+            umkm_id: umkmId // Inject umkm_id
+        };
+
         try {
-            const transaksi = await transaksiService.createTransaksi(req.body);
+            const transaksi = await transaksiService.createTransaksi(dataToSend);
 
             res.status(201).json({
                 success: true,

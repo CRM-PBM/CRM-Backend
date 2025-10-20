@@ -1,0 +1,12 @@
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
+
+const KategoriProduk = sequelize.define("KategoriProduk", {
+    kategori_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    nama_kategori: { type: DataTypes.STRING(50), unique: true, allowNull: false },
+}, {
+    tableName: "KATEGORI_PRODUK",
+    timestamps: false
+}); 
+
+module.exports = KategoriProduk;

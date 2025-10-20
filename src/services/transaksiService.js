@@ -8,6 +8,8 @@ const Invoice = require('../models/Invoice');
 const Umkm = require('../models/Umkm'); 
 
 class TransaksiService {
+
+    
     
     // Helper: Mendapatkan tanggal awal dan akhir bulan
     getMonthDateRange(date) {

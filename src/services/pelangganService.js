@@ -2,6 +2,9 @@ const { Op } = require('sequelize');
 const Pelanggan = require('../models/Pelanggan');
 const Umkm = require('../models/Umkm');
 
+const sequelize = require('../config/database')
+
+
 class PelangganService {
 
   getMonthDateRange(date) {
@@ -9,6 +12,28 @@ class PelangganService {
     const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
     return { start, end };
   }
+
+  async generateKodePelanggan(umkmId, gender) {
+    const GENDER_CODES = {
+        "Pria": '01',
+        "Wanita": '02',
+    };
+
+    const umkmCode = String(umkmId).padStart(2, '0');
+    const genderCode = GENDER_CODES[gender] || '00'; 
+
+    // Cari ID pelanggan terakhir di seluruh tabel untuk sequence
+    const lastPelanggan = await Pelanggan.findOne({
+        order: [['pelanggan_id', 'DESC']],
+        limit: 1,
+    });
+
+    const nextId = (lastPelanggan ? lastPelanggan.pelanggan_id : 0) + 1;
+    const sequenceCode = String(nextId).padStart(3, '0');
+
+    // Format: PEL0101004
+    return `PEL${umkmCode}${genderCode}${sequenceCode}`;
+  } 
 
   // Get all pelanggan dengan pagination dan filter
   async getAllPelanggan(filters = {}, umkmId) {
@@ -71,18 +96,32 @@ class PelangganService {
       const existingEmail = await Pelanggan.findOne({ where: { email } });
       if (existingEmail) throw new Error('Email sudah terdaftar');
     }
+    let t;
+    try {
+        t = await sequelize.transaction();
 
-    const pelanggan = await Pelanggan.create({
-      nama,
-      telepon,
-      email,
-      gender,
-      alamat,
-      level,
-      umkm_id
-    });
+        const kode_pelanggan = await this.generateKodePelanggan(umkm_id, gender); 
+        const pelanggan = await Pelanggan.create({
+            nama,
+            telepon,
+            email,
+            gender,
+            alamat,
+            level,
+            umkm_id,
+            kode_pelanggan 
+        }, { transaction: t });
 
-    return this.getPelangganById(pelanggan.pelanggan_id);
+        await t.commit();
+        return this.getPelangganById(pelanggan.pelanggan_id);
+
+    } catch (error) {
+        await t.rollback();
+        if (error.name === 'SequelizeUniqueConstraintError' && error.fields.kode_pelanggan) {
+            throw new Error('Gagal membuat kode pelanggan unik. Coba lagi.');
+        }
+        throw error;
+    }
   }
 
   // Update pelanggan

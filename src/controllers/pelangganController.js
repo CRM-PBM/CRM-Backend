@@ -46,8 +46,15 @@ class PelangganController {
   }
 
   async createPelanggan(req, res, next) {
+    const umkmId = req.umkmId;
+
+    const dataToSend = {
+        ...req.body,
+        umkm_id: umkmId
+    };
+
     try {
-      const pelanggan = await pelangganService.createPelanggan(req.body);
+      const pelanggan = await pelangganService.createPelanggan(dataToSend);
       res.status(201).json({
         success: true,
         message: 'Pelanggan berhasil ditambahkan',

@@ -65,22 +65,23 @@ async function testAuth() {
       nama_umkm: `Toko Test ${randomNum}`,
       alamat: 'Jl. Testing No. 123',
       telepon: `08123456${randomNum}`,
-      username: `testuser${randomNum}`,
+      email: `testuser@gmail.com`,
       password: 'password123',
-      nama_lengkap: `User Test ${randomNum}`
+      nama_pemilik: `User Test ${randomNum}`,
+      umkm_id: null // Akan di-assign otomatis oleh sistem
     };
 
     try {
       const registerResponse = await axios.post(`${BASE_URL}/auth/register`, registerData);
       log('green', '✅ Register berhasil!');
-      log('blue', `   UMKM: ${registerResponse.data.umkm.nama_umkm}`);
-      log('blue', `   User: ${registerResponse.data.user.username}`);
-      log('blue', `   Token: ${registerResponse.data.token.substring(0, 30)}...`);
-      token = registerResponse.data.token;
-      userId = registerResponse.data.user.id;
+      log('blue', `   UMKM: ${registerResponse.data.user.nama_umkm}`);
+      log('blue', `   Email: ${registerResponse.data.user.email}`);
+      log('blue', `   UMKM ID: ${registerResponse.data.user.umkm_id}`);
+      log('blue', `   Message: ${registerResponse.data.msg}`);
+      // Note: Register tidak langsung return token, harus login dulu
     } catch (error) {
-      if (error.response?.status === 400 && error.response.data.error?.includes('sudah terdaftar')) {
-        log('yellow', '⚠️  Username sudah ada, skip register');
+      if (error.response?.status === 400 && error.response.data.msg?.includes('sudah terdaftar')) {
+        log('yellow', '⚠️  Email sudah ada, skip register');
         // Lanjut ke login
       } else {
         throw error;
@@ -90,22 +91,24 @@ async function testAuth() {
     // ========== TEST 4: Login ==========
     log('yellow', '\n📝 Test 4: Login dengan kredensial...');
     const loginData = {
-      username: registerData.username,
+      email: registerData.email,
       password: registerData.password
     };
 
     try {
       const loginResponse = await axios.post(`${BASE_URL}/auth/login`, loginData);
       log('green', '✅ Login berhasil!');
-      log('blue', `   User: ${loginResponse.data.user.username}`);
-      log('blue', `   Nama: ${loginResponse.data.user.nama_lengkap}`);
+      log('blue', `   Email: ${loginResponse.data.user.email}`);
+      log('blue', `   Role: ${loginResponse.data.user.role}`);
       log('blue', `   UMKM ID: ${loginResponse.data.user.umkm_id}`);
-      log('blue', `   Token: ${loginResponse.data.token.substring(0, 30)}...`);
-      token = loginResponse.data.token;
-      userId = loginResponse.data.user.id;
+      log('blue', `   UMKM: ${loginResponse.data.user.nama_umkm}`);
+      log('blue', `   Access Token: ${loginResponse.data.accessToken.substring(0, 30)}...`);
+      log('blue', `   Refresh Token: ${loginResponse.data.refreshToken.substring(0, 30)}...`);
+      token = loginResponse.data.accessToken;
+      userId = loginResponse.data.user.user_id;
     } catch (error) {
-      if (error.response?.status === 401) {
-        log('red', '❌ Login gagal: Username/password salah');
+      if (error.response?.status === 400) {
+        log('red', `❌ Login gagal: ${error.response.data.msg}`);
         log('yellow', '   Gunakan kredensial yang sudah terdaftar untuk test ini');
         return;
       }
@@ -152,6 +155,23 @@ async function testAuth() {
     });
     log('green', '✅ Berhasil akses API Broadcast!');
     log('blue', `   Total data: ${broadcastResponse.data.pagination.total}`);
+    log('blue', `   Current page: ${broadcastResponse.data.pagination.page}`);
+    log('blue', `   Limit: ${broadcastResponse.data.pagination.limit}`);
+    
+    // Tampilkan beberapa data broadcast jika ada
+    if (broadcastResponse.data.data.length > 0) {
+      log('blue', '\n   📋 Sample data broadcast:');
+      broadcastResponse.data.data.slice(0, 3).forEach((broadcast, index) => {
+        log('blue', `   ${index + 1}. ${broadcast.nama_campaign || 'N/A'} (Status: ${broadcast.status || 'N/A'})`);
+        const pesan = broadcast.pesan || broadcast.message || '';
+        if (pesan) {
+          log('blue', `      - Pesan: ${pesan.substring(0, 50)}${pesan.length > 50 ? '...' : ''}`);
+        }
+        log('blue', `      - Total penerima: ${broadcast.total_penerima || 0}`);
+      });
+    } else {
+      log('blue', '   📋 Belum ada data broadcast');
+    }
 
     // ========== TEST 9: Create data dengan token valid ==========
     log('yellow', '\n📝 Test 9: Create pelanggan dengan token valid...');
@@ -159,7 +179,8 @@ async function testAuth() {
       nama: `Pelanggan Test ${randomNum}`,
       email: `test${randomNum}@example.com`,
       telepon: `08123456${randomNum}`,
-      alamat: 'Jl. Test No. 123'
+      gender: 'Pria',
+      level: 'silver'
     };
 
     const createResponse = await axios.post(`${BASE_URL}/pelanggan`, newPelanggan, {
@@ -168,13 +189,14 @@ async function testAuth() {
       }
     });
     log('green', '✅ Berhasil create pelanggan!');
-    log('blue', `   ID: ${createResponse.data.data.id}`);
+    log('blue', `   ID: ${createResponse.data.data.pelanggan_id}`);
     log('blue', `   Nama: ${createResponse.data.data.nama}`);
+    log('blue', `   UMKM ID: ${createResponse.data.data.umkm_id}`);
 
     // ========== TEST 10: Delete data dengan token valid ==========
     log('yellow', '\n📝 Test 10: Delete pelanggan dengan token valid...');
     const deleteResponse = await axios.delete(
-      `${BASE_URL}/pelanggan/${createResponse.data.data.id}`,
+      `${BASE_URL}/pelanggan/${createResponse.data.data.pelanggan_id}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`

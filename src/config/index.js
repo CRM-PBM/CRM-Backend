@@ -18,5 +18,11 @@ module.exports = {
   broadcast: {
     rateLimit: parseInt(process.env.BROADCAST_RATE_LIMIT) || 10,
     delayMs: parseInt(process.env.BROADCAST_DELAY_MS) || 1000
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET || 'default-secret-change-this',
+    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+    refreshSecret: process.env.REFRESH_TOKEN_SECRET || 'default-refresh-secret-change-this',
+    refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d'
   }
 };

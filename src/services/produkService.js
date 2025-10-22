@@ -4,10 +4,13 @@ const { Op } = require('sequelize');
 class ProdukService {
   // Get all produk
   async getAllProduk(filters = {}) {
-    const { page = 1, limit = 10, aktif, search } = filters;
+    const { page = 1, limit = 10, umkm_id, aktif, search } = filters;
     const offset = (page - 1) * limit;
 
     const where = {};
+    
+    // Filter berdasarkan UMKM (PENTING untuk data isolation)
+    if (umkm_id) where.umkm_id = umkm_id;
     
     if (aktif !== undefined) where.aktif = aktif === 'true';
     
@@ -44,7 +47,7 @@ class ProdukService {
 
   // Create produk
   async createProduk(data) {
-    const { nama_produk, harga, stok, aktif } = data;
+    const { nama_produk, harga, stok, aktif, umkm_id } = data;
 
     if (!nama_produk) {
       throw new Error('Nama produk wajib diisi');
@@ -52,11 +55,15 @@ class ProdukService {
     if (!harga || harga <= 0) {
       throw new Error('Harga harus lebih dari 0');
     }
+    if (!umkm_id) {
+      throw new Error('UMKM ID wajib diisi');
+    }
 
     const produk = await Produk.create({
       nama_produk,
       harga,
       stok: stok || 0,
+      umkm_id,
       aktif: aktif !== undefined ? aktif : true
     });
 

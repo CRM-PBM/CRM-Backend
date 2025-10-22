@@ -14,4 +14,37 @@ const Umkm = sequelize.define("Umkm", {
   timestamps: false
 });
 
+// Asosiasi dengan model lain
+Umkm.associate = function(models) {
+  // Umkm memiliki banyak Produk
+  Umkm.hasMany(models.Produk, {
+    foreignKey: 'umkm_id',
+    as: 'produk'
+  });
+  
+  // Umkm memiliki banyak Pelanggan
+  Umkm.hasMany(models.Pelanggan, {
+    foreignKey: 'umkm_id',
+    as: 'pelanggan'
+  });
+  
+  // Umkm memiliki banyak Transaksi
+  Umkm.hasMany(models.Transaksi, {
+    foreignKey: 'umkm_id',
+    as: 'transaksi'
+  });
+  
+  // Umkm memiliki banyak Broadcast
+  Umkm.hasMany(models.Broadcast, {
+    foreignKey: 'umkm_id',
+    as: 'broadcast'
+  });
+  
+  // Umkm memiliki banyak User
+  Umkm.hasMany(models.User, {
+    foreignKey: 'umkm_id',
+    as: 'users'
+  });
+};
+
 module.exports = Umkm;

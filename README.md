@@ -6,31 +6,37 @@ Backend API untuk sistem CRM (Customer Relationship Management) UMKM menggunakan
 
 ### 🔐 Autentikasi & Authorization
 - JWT (JSON Web Token) authentication
+- Refresh token untuk UX & security
 - Register & Login
 - Protected routes (harus login)
 - Password hashing dengan bcrypt
+- **Multi-tenancy: Data isolation per UMKM** ← Baru!
 - Token expiration management
 
 ### ✅ API Pelanggan
 - CRUD pelanggan lengkap
+- **Auto-filter berdasarkan UMKM yang login** ← Baru!
 - Pagination & filtering
 - Search berdasarkan nama/email/telepon
 - Validasi email unik
 
 ### ✅ API Transaksi
 - Create transaksi dengan multiple items
+- **Auto-filter berdasarkan UMKM yang login** ← Baru!
 - Auto-generate nomor transaksi (TRX-YYYYMMDD-XXXX)
 - Manajemen stok otomatis
 - Database transaction untuk consistency
-- Statistik & reporting
+- Statistik & reporting per UMKM
 
 ### ✅ API Produk
 - CRUD produk
+- **Auto-filter berdasarkan UMKM yang login** ← Baru!
 - Manajemen stok
 - Status aktif/non-aktif
 
 ### ✅ API Broadcast WhatsApp
 - WhatsApp broadcast via Watzap.id
+- **Auto-filter berdasarkan UMKM yang login** ← Baru!
 - Personalisasi pesan dengan placeholder
 - Tracking status per penerima
 - Statistik pengiriman
@@ -69,9 +75,11 @@ Base URL: `http://localhost:3000/api`
 
 ### 🔐 Autentikasi (Public - No Token Required)
 - `POST /api/auth/register` - Registrasi UMKM & User baru
-- `POST /api/auth/login` - Login & dapatkan JWT token
+- `POST /api/auth/login` - Login & dapatkan access + refresh token
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - Logout & revoke refresh token
 
-📖 [Dokumentasi lengkap](./README-AUTH.md)
+📖 [Dokumentasi lengkap](./README-AUTH.md) | [Refresh Token Guide](./README-REFRESH-TOKEN.md)
 
 ### ✅ Protected Endpoints (Requires JWT Token)
 
@@ -121,6 +129,9 @@ Base URL: `http://localhost:3000/api`
 # Test Autentikasi (Login, Register, Token)
 node tests/test-auth.js
 
+# Test Refresh Token
+node tests/test-refresh-token.js
+
 # Test API Pelanggan
 node tests/test-pelanggan-api.js
 
@@ -147,8 +158,11 @@ Import `docs/postman-collection.json` ke Postman.
 ## 💡 Fitur Khusus
 
 - **JWT Authentication**: Sistem login dengan token untuk keamanan
+- **Refresh Token**: Access token short-lived (15 min) + refresh token (7 days) untuk UX dan security
+- **Multi-Tenancy & Data Isolation**: Setiap UMKM hanya bisa akses data mereka sendiri
 - **Protected Routes**: Hanya user yang login bisa akses data
 - **Password Hashing**: Bcrypt untuk enkripsi password
+- **Auto-filter by UMKM**: Semua data otomatis di-filter berdasarkan UMKM yang login
 - **Auto-generate nomor transaksi**: Format TRX-YYYYMMDD-XXXX
 - **Manajemen stok otomatis**: Berkurang saat beli, kembali saat delete
 - **Database transaction**: Untuk data consistency
@@ -161,6 +175,8 @@ Import `docs/postman-collection.json` ke Postman.
 
 ### API Documentation
 - [🔐 Autentikasi & Authorization](./README-AUTH.md) - **Login, Register, JWT Token**
+- [🔄 Refresh Token Implementation](./README-REFRESH-TOKEN.md) - **Panduan lengkap refresh token**
+- [🔒 Data Isolation per UMKM](./README-DATA-ISOLATION.md) - **Multi-tenancy & security** ← Baru!
 - [API Pelanggan](./README-API-PELANGGAN.md)
 - [API Transaksi](./README-API-TRANSAKSI.md)
 - [API Broadcast WhatsApp](./README-API-BROADCAST.md)

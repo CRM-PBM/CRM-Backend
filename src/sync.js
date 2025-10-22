@@ -1,6 +1,7 @@
 const sequelize = require("./config/database");
 const Umkm = require("./models/Umkm");
 const User = require("./models/User");
+const RefreshToken = require("./models/RefreshToken");
 const Pelanggan = require("./models/Pelanggan");
 const Produk = require("./models/Produk");
 const Broadcast = require("./models/Broadcast");

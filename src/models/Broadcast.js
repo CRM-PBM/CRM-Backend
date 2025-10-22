@@ -7,7 +7,15 @@ const Broadcast = sequelize.define("Broadcast", {
   judul_pesan: { type: DataTypes.STRING(200), allowNull: false },
   isi_pesan: { type: DataTypes.TEXT, allowNull: false },
   tanggal_kirim: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  status: { type: DataTypes.STRING(50) }
+  status: { type: DataTypes.STRING(50) },
+  umkm_id: { 
+    type: DataTypes.INTEGER, 
+    allowNull: false, // NOT NULL setelah data di-migrate
+    references: {
+      model: 'UMKM',
+      key: 'umkm_id'
+    }
+  }
 }, {
   tableName: "broadcast",
   timestamps: false
@@ -15,5 +23,13 @@ const Broadcast = sequelize.define("Broadcast", {
 
 Broadcast.belongsTo(User, { foreignKey: "user_id" });
 User.hasMany(Broadcast, { foreignKey: "user_id" });
+
+// Asosiasi dengan UMKM
+Broadcast.associate = function(models) {
+  Broadcast.belongsTo(models.Umkm, {
+    foreignKey: 'umkm_id',
+    as: 'umkm'
+  });
+};
 
 module.exports = Broadcast;

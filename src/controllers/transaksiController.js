@@ -8,6 +8,7 @@ class TransaksiController {
       const filters = {
         page: req.query.page,
         limit: req.query.limit,
+        umkm_id: req.umkmId, // Dari JWT token
         pelanggan_id: req.query.pelanggan_id,
         metode_pembayaran: req.query.metode_pembayaran,
         start_date: req.query.start_date,
@@ -54,7 +55,13 @@ class TransaksiController {
   // POST /api/transaksi - Create new transaksi
   async createTransaksi(req, res, next) {
     try {
-      const transaksi = await transaksiService.createTransaksi(req.body);
+      // Auto-assign umkm_id dari user yang login
+      const data = {
+        ...req.body,
+        umkm_id: req.umkmId // Dari JWT token
+      };
+      
+      const transaksi = await transaksiService.createTransaksi(data);
 
       res.status(201).json({
         success: true,
@@ -149,6 +156,7 @@ class TransaksiController {
   async getStatistik(req, res, next) {
     try {
       const filters = {
+        umkm_id: req.umkmId, // Dari JWT token
         start_date: req.query.start_date,
         end_date: req.query.end_date
       };

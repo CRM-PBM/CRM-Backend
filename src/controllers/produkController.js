@@ -46,7 +46,13 @@ class ProdukController {
 
   async createProduk(req, res, next) {
     try {
-      const produk = await produkService.createProduk(req.body);
+      // Auto-assign umkm_id dari user yang login
+      const data = {
+        ...req.body,
+        umkm_id: req.umkmId // Dari JWT token
+      };
+      
+      const produk = await produkService.createProduk(data);
       res.status(201).json({
         success: true,
         message: 'Produk berhasil ditambahkan',

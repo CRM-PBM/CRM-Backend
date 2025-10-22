@@ -40,7 +40,8 @@ class TransaksiService {
   async getAllTransaksi(filters = {}) {
     const { 
       page = 1, 
-      limit = 10, 
+      limit = 10,
+      umkm_id, 
       pelanggan_id, 
       metode_pembayaran,
       start_date,
@@ -50,6 +51,9 @@ class TransaksiService {
     const offset = (page - 1) * limit;
 
     const where = {};
+    
+    // Filter berdasarkan UMKM (PENTING untuk data isolation)
+    if (umkm_id) where.umkm_id = umkm_id;
     
     if (pelanggan_id) where.pelanggan_id = pelanggan_id;
     if (metode_pembayaran) where.metode_pembayaran = metode_pembayaran;
@@ -141,11 +145,16 @@ class TransaksiService {
 
   // Create new transaksi dengan detail items
   async createTransaksi(data) {
-    const { pelanggan_id, items, metode_pembayaran, keterangan } = data;
+    const { pelanggan_id, items, metode_pembayaran, keterangan, umkm_id } = data;
 
     // Validasi
     if (!items || items.length === 0) {
       throw new Error('Items transaksi wajib diisi');
+    }
+
+    // Validasi umkm_id (PENTING untuk data isolation)
+    if (!umkm_id) {
+      throw new Error('UMKM ID wajib diisi');
     }
 
     // Mulai transaction database
@@ -200,7 +209,8 @@ class TransaksiService {
         tanggal_transaksi: new Date(),
         total,
         metode_pembayaran,
-        keterangan
+        keterangan,
+        umkm_id // PENTING untuk data isolation
       }, { transaction: t });
 
       // Create detail transaksi
@@ -326,8 +336,11 @@ class TransaksiService {
 
   // Get statistik transaksi
   async getStatistik(filters = {}) {
-    const { start_date, end_date } = filters;
+    const { umkm_id, start_date, end_date } = filters;
     const where = {};
+
+    // Filter berdasarkan UMKM (PENTING untuk data isolation)
+    if (umkm_id) where.umkm_id = umkm_id;
 
     if (start_date && end_date) {
       where.tanggal_transaksi = {

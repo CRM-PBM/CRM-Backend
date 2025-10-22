@@ -8,7 +8,7 @@ class PelangganController {
       const filters = {
         page: req.query.page,
         limit: req.query.limit,
-        umkm_id: req.query.umkm_id,
+        umkm_id: req.umkmId, // Dari JWT token (middleware auth)
         level: req.query.level,
         gender: req.query.gender,
         search: req.query.search
@@ -31,7 +31,9 @@ class PelangganController {
   async getPelangganById(req, res, next) {
     try {
       const { id } = req.params;
-      const pelanggan = await pelangganService.getPelangganById(id);
+      const umkm_id = req.umkmId; // Dari JWT token
+      
+      const pelanggan = await pelangganService.getPelangganById(id, umkm_id);
 
       res.json({
         success: true,
@@ -53,7 +55,13 @@ class PelangganController {
   // POST /api/pelanggan - Create new pelanggan
   async createPelanggan(req, res, next) {
     try {
-      const pelanggan = await pelangganService.createPelanggan(req.body);
+      // Auto-assign umkm_id dari user yang login
+      const data = {
+        ...req.body,
+        umkm_id: req.umkmId // Dari JWT token
+      };
+      
+      const pelanggan = await pelangganService.createPelanggan(data);
 
       res.status(201).json({
         success: true,
@@ -76,7 +84,9 @@ class PelangganController {
   async updatePelanggan(req, res, next) {
     try {
       const { id } = req.params;
-      const pelanggan = await pelangganService.updatePelanggan(id, req.body);
+      const umkm_id = req.umkmId; // Dari JWT token
+      
+      const pelanggan = await pelangganService.updatePelanggan(id, req.body, umkm_id);
 
       res.json({
         success: true,
@@ -105,7 +115,9 @@ class PelangganController {
   async deletePelanggan(req, res, next) {
     try {
       const { id } = req.params;
-      const result = await pelangganService.deletePelanggan(id);
+      const umkm_id = req.umkmId; // Dari JWT token
+      
+      const result = await pelangganService.deletePelanggan(id, umkm_id);
 
       res.json({
         success: true,

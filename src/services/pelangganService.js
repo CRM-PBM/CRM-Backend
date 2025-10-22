@@ -41,8 +41,16 @@ class PelangganService {
   }
 
   // Get pelanggan by ID
-  async getPelangganById(id) {
-    const pelanggan = await Pelanggan.findByPk(id, {
+  async getPelangganById(id, umkm_id) {
+    const where = { pelanggan_id: id };
+    
+    // Filter berdasarkan umkm_id untuk keamanan
+    if (umkm_id) {
+      where.umkm_id = umkm_id;
+    }
+    
+    const pelanggan = await Pelanggan.findOne({
+      where,
       include: [{ model: Umkm, attributes: ['umkm_id', 'nama_umkm'] }]
     });
 
@@ -83,18 +91,30 @@ class PelangganService {
   }
 
   // Update pelanggan
-  async updatePelanggan(id, data) {
-    const pelanggan = await Pelanggan.findByPk(id);
+  async updatePelanggan(id, data, umkm_id) {
+    const where = { pelanggan_id: id };
+    
+    // Filter berdasarkan umkm_id untuk keamanan
+    if (umkm_id) {
+      where.umkm_id = umkm_id;
+    }
+    
+    const pelanggan = await Pelanggan.findOne({ where });
 
     if (!pelanggan) {
       throw new Error('Pelanggan tidak ditemukan');
     }
 
-    const { nama, telepon, email, gender, level, umkm_id } = data;
+    const { nama, telepon, email, gender, level } = data;
 
     // Cek email jika diubah
     if (email && email !== pelanggan.email) {
-      const existingEmail = await Pelanggan.findOne({ where: { email } });
+      const existingEmail = await Pelanggan.findOne({ 
+        where: { 
+          email,
+          pelanggan_id: { [Op.ne]: id } // Exclude current pelanggan
+        } 
+      });
       if (existingEmail) {
         throw new Error('Email sudah terdaftar');
       }
@@ -106,16 +126,22 @@ class PelangganService {
       email: email !== undefined ? email : pelanggan.email,
       gender: gender || pelanggan.gender,
       level: level !== undefined ? level : pelanggan.level,
-      umkm_id: umkm_id || pelanggan.umkm_id,
       updated_at: new Date()
     });
 
-    return this.getPelangganById(id);
+    return this.getPelangganById(id, umkm_id);
   }
 
   // Delete pelanggan
-  async deletePelanggan(id) {
-    const pelanggan = await Pelanggan.findByPk(id);
+  async deletePelanggan(id, umkm_id) {
+    const where = { pelanggan_id: id };
+    
+    // Filter berdasarkan umkm_id untuk keamanan
+    if (umkm_id) {
+      where.umkm_id = umkm_id;
+    }
+    
+    const pelanggan = await Pelanggan.findOne({ where });
 
     if (!pelanggan) {
       throw new Error('Pelanggan tidak ditemukan');

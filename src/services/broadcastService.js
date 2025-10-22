@@ -9,10 +9,13 @@ const logger = require('../utils/logger');
 class BroadcastService {
   // Get all broadcast
   async getAllBroadcast(filters = {}) {
-    const { page = 1, limit = 10, status, search } = filters;
+    const { page = 1, limit = 10, umkm_id, status, search } = filters;
     const offset = (page - 1) * limit;
 
     const where = {};
+    
+    // Filter berdasarkan UMKM (PENTING untuk data isolation)
+    if (umkm_id) where.umkm_id = umkm_id;
     
     if (status) where.status = status;
     
@@ -102,7 +105,7 @@ class BroadcastService {
 
   // Create broadcast (draft)
   async createBroadcast(data) {
-    const { judul_pesan, isi_pesan, pelanggan_ids, user_id } = data;
+    const { judul_pesan, isi_pesan, pelanggan_ids, user_id, umkm_id } = data;
 
     // Validasi
     if (!judul_pesan) {
@@ -124,7 +127,8 @@ class BroadcastService {
         isi_pesan,
         tanggal_kirim: new Date(),
         status: 'draft',
-        user_id: user_id || null
+        user_id: user_id || null,
+        umkm_id // Auto-assign dari token
       }, { transaction: t });
 
       // Validasi pelanggan dan create broadcast detail
@@ -346,8 +350,11 @@ class BroadcastService {
 
   // Get statistik broadcast
   async getStatistik(filters = {}) {
-    const { start_date, end_date } = filters;
+    const { umkm_id, start_date, end_date } = filters;
     const where = {};
+
+    // Filter berdasarkan UMKM (PENTING untuk data isolation)
+    if (umkm_id) where.umkm_id = umkm_id;
 
     if (start_date && end_date) {
       where.tanggal_kirim = {

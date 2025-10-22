@@ -8,6 +8,7 @@ class BroadcastController {
       const filters = {
         page: req.query.page,
         limit: req.query.limit,
+        umkm_id: req.umkm_id, // Dari JWT token
         status: req.query.status,
         search: req.query.search
       };
@@ -51,7 +52,13 @@ class BroadcastController {
   // POST /api/broadcast - Create new broadcast (draft)
   async createBroadcast(req, res, next) {
     try {
-      const broadcast = await broadcastService.createBroadcast(req.body);
+      // Auto-assign umkm_id dari user yang login
+      const data = {
+        ...req.body,
+        umkm_id: req.umkmId // Dari JWT token
+      };
+      
+      const broadcast = await broadcastService.createBroadcast(data);
 
       res.status(201).json({
         success: true,
@@ -134,6 +141,7 @@ class BroadcastController {
   async getStatistik(req, res, next) {
     try {
       const filters = {
+        umkm_id: req.umkmId, // Dari JWT token
         start_date: req.query.start_date,
         end_date: req.query.end_date
       };

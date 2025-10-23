@@ -1,59 +1,189 @@
-const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 const sequelize = require('../config/database');
 const Transaksi = require('../models/Transaksi');
 const DetailTransaksi = require('../models/DetailTransaksi');
 const Pelanggan = require('../models/Pelanggan');
 const Produk = require('../models/Produk');
 const Invoice = require('../models/Invoice');
+const Umkm = require('../models/Umkm'); 
 
 class TransaksiService {
-  // Generate nomor transaksi otomatis
-  async generateNomorTransaksi() {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    // Format: TRX-YYYYMMDD-XXXX
-    const prefix = `TRX-${year}${month}${day}`;
-    
-    // Cari transaksi terakhir hari ini
-    const lastTransaction = await Transaksi.findOne({
-      where: {
-        nomor_transaksi: {
-          [Op.like]: `${prefix}%`
-        }
-      },
-      order: [['transaksi_id', 'DESC']]
-    });
 
-    let sequence = 1;
-    if (lastTransaction) {
-      const lastNumber = lastTransaction.nomor_transaksi.split('-')[2];
-      sequence = parseInt(lastNumber) + 1;
+    async generateKodeTransaksi(umkmId, pelangganId, transaksiId) {
+        const umkmCode = String(umkmId).padStart(2, '0');      
+        const pelangganCode = String(pelangganId).padStart(2, '0');
+        const transaksiCode = String(transaksiId).padStart(3, '0'); 
+
+        return `TRX${umkmCode}${pelangganCode}${transaksiCode}`;
+    }
+    
+    // Helper: Mendapatkan tanggal awal dan akhir bulan
+    getMonthDateRange(date) {
+        const start = new Date(date.getFullYear(), date.getMonth(), 1);
+        const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+        return { start, end };
     }
 
-    return `${prefix}-${String(sequence).padStart(4, '0')}`;
-  }
+    // Helper: Filter JOIN Pelanggan ke UMKM
+    getPelangganFilterInclude(umkmId) {
+        return {
+            model: Pelanggan,
+            required: true,
+            attributes: [], 
+            where: { umkm_id: umkmId }
+        };
+    }
 
-  // Get all transaksi dengan pagination dan filter
-  async getAllTransaksi(filters = {}) {
-    const { 
-      page = 1, 
-      limit = 10,
-      umkm_id, 
-      pelanggan_id, 
-      metode_pembayaran,
-      start_date,
-      end_date,
-      search 
-    } = filters;
-    const offset = (page - 1) * limit;
+    // --- LOGIC UTAMA STATISTIK UNTUK DASHBOARD ---
+    async getStatistik(umkmId) {
+      const today = new Date();
+      const currentMonth = this.getMonthDateRange(today);
+      const lastMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastMonth = this.getMonthDateRange(lastMonthDate);
+
+      const startOfToday = new Date(today);
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
+
+      const pelangganFilter = this.getPelangganFilterInclude(umkmId);
+
+      // Jalankan 3 query agregat paralel (bulan ini, hari ini, bulan lalu)
+      const [
+        currentRow,
+        todayRow,
+        lastRow,
+        topProducts
+      ] = await Promise.all([
+        // total bulan ini
+        Transaksi.findOne({
+          attributes: [
+            [sequelize.fn('SUM', sequelize.col('Transaksi.total')), 'total_pendapatan'],
+            [sequelize.fn('COUNT', sequelize.col('Transaksi.transaksi_id')), 'total_transaksi'],
+            [sequelize.fn('AVG', sequelize.col('Transaksi.total')), 'rata_rata'],
+          ],
+          where: { tanggal_transaksi: { [Op.between]: [currentMonth.start, currentMonth.end] } },
+          include: [pelangganFilter],
+          raw: true
+        }),
+
+        // hari ini
+        Transaksi.findOne({
+          attributes: [
+            [sequelize.fn('SUM', sequelize.col('Transaksi.total')), 'pendapatan_hari_ini'],
+            [sequelize.fn('COUNT', sequelize.col('Transaksi.transaksi_id')), 'total_hari_ini'],
+          ],
+          where: { tanggal_transaksi: { [Op.between]: [startOfToday, endOfToday] } },
+          include: [pelangganFilter],
+          raw: true
+        }),
+
+        // bulan lalu
+        Transaksi.findOne({
+          attributes: [
+            [sequelize.fn('SUM', sequelize.col('Transaksi.total')), 'total_pendapatan'],
+          ],
+          where: { tanggal_transaksi: { [Op.between]: [lastMonth.start, lastMonth.end] } },
+          include: [pelangganFilter],
+          raw: true
+        }),
+
+        // top products (tetap findAll karena butuh rows)
+        DetailTransaksi.findAll({
+          attributes: [
+            'produk_id',
+            [sequelize.fn('SUM', sequelize.col('DetailTransaksi.jumlah')), 'total_terjual'],
+            [sequelize.fn('SUM', sequelize.col('DetailTransaksi.subtotal')), 'total_pendapatan']
+          ],
+          include: [
+            {
+              model: Transaksi,
+              attributes: [],
+              required: true,
+              where: { tanggal_transaksi: { [Op.between]: [currentMonth.start, currentMonth.end] } },
+              include: [this.getPelangganFilterInclude(umkmId)]
+            },
+            { model: Produk, attributes: ['nama_produk'] }
+          ],
+          group: ['produk_id', 'Produk.nama_produk'],
+          order: [[sequelize.fn('SUM', sequelize.col('jumlah')), 'DESC']],
+          limit: 5,
+          raw: true
+        })
+      ]);
+
+      // fallback aman
+      const currentRevenue = parseFloat(currentRow?.total_pendapatan || 0);
+      const currentTransactions = parseInt(currentRow?.total_transaksi || 0);
+      const currentAverage = parseFloat(currentRow?.rata_rata || 0);
+
+      const pendapatanHariIni = parseFloat(todayRow?.pendapatan_hari_ini || 0);
+      const totalHariIni = parseInt(todayRow?.total_hari_ini || 0);
+
+      const lastRevenue = parseFloat(lastRow?.total_pendapatan || 0);
+
+      let pertumbuhan = 0;
+      if (lastRevenue > 0) {
+        pertumbuhan = ((currentRevenue - lastRevenue) / lastRevenue) * 100;
+      } else if (currentRevenue > 0) {
+        pertumbuhan = 100;
+      }
+
+      return {
+        total_transaksi: currentTransactions,
+        total_pendapatan: currentRevenue,
+        rata_rata: currentAverage,
+        pendapatan_hari_ini: pendapatanHariIni,
+        total_hari_ini: totalHariIni,
+        pertumbuhan: parseFloat(pertumbuhan.toFixed(1)),
+        top_products: topProducts
+      };
+    }
+
+  
+    // Generate nomor transaksi otomatis
+    async generateNomorTransaksi() {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        // Format: TRX-YYYYMMDD-XXXX
+        const prefix = `TRX-${year}${month}${day}`;
+        
+        // Cari transaksi terakhir hari ini
+        const lastTransaction = await Transaksi.findOne({
+            where: {
+                nomor_transaksi: {
+                    [Op.like]: `${prefix}%`
+                }
+            },
+            order: [['transaksi_id', 'DESC']]
+        });
+
+        let sequence = 1;
+        if (lastTransaction) {
+            const lastNumber = lastTransaction.nomor_transaksi.split('-')[2];
+            sequence = parseInt(lastNumber) + 1;
+        }
+
+        return `${prefix}-${String(sequence).padStart(4, '0')}`;
+    }
+
+    // Get all transaksi dengan pagination dan filter
+    async getAllTransaksi(filters = {}, umkmId) {
+        const { 
+            page = 1, 
+            limit = 10, 
+            pelanggan_id, 
+            metode_pembayaran,
+            start_date,
+            end_date,
+            search 
+        } = filters;
+        const offset = (page - 1) * limit;
 
     const where = {};
-    
-    // Filter berdasarkan UMKM (PENTING untuk data isolation)
-    if (umkm_id) where.umkm_id = umkm_id;
     
     if (pelanggan_id) where.pelanggan_id = pelanggan_id;
     if (metode_pembayaran) where.metode_pembayaran = metode_pembayaran;
@@ -72,45 +202,49 @@ class TransaksiService {
       };
     }
 
-    if (search) {
-      where[Op.or] = [
-        { nomor_transaksi: { [Op.like]: `%${search}%` } },
-        { keterangan: { [Op.like]: `%${search}%` } }
-      ];
+        if (search) {
+            where[Op.or] = [
+                { nomor_transaksi: { [Op.like]: `%${search}%` } },
+                { keterangan: { [Op.like]: `%${search}%` } }
+            ];
+        }
+
+        const umkmFilterInclude = this.getPelangganFilterInclude(umkmId);
+
+        const { count, rows } = await Transaksi.findAndCountAll({
+            where,
+            include: [
+                umkmFilterInclude,
+                { 
+                    model: Pelanggan, 
+                    attributes: ['pelanggan_id', 'nama', 'telepon', 'email'] 
+                },
+                {
+                    model: DetailTransaksi,
+                    include: [
+                        {
+                            model: Produk,
+                            attributes: ['produk_id', 'nama_produk', 'harga']
+                        }
+                    ]
+                }
+            ],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            order: [['tanggal_transaksi', 'DESC']]
+        });
+
+        return {
+            data: rows,
+            pagination: {
+                total: count,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(count / limit)
+            }
+        };
     }
 
-    const { count, rows } = await Transaksi.findAndCountAll({
-      where,
-      include: [
-        { 
-          model: Pelanggan, 
-          attributes: ['pelanggan_id', 'nama', 'telepon', 'email'] 
-        },
-        {
-          model: DetailTransaksi,
-          include: [
-            {
-              model: Produk,
-              attributes: ['produk_id', 'nama_produk', 'harga']
-            }
-          ]
-        }
-      ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      order: [['tanggal_transaksi', 'DESC']]
-    });
-
-    return {
-      data: rows,
-      pagination: {
-        total: count,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(count / limit)
-      }
-    };
-  }
 
   // Get transaksi by ID
   async getTransaksiById(id) {
@@ -209,9 +343,17 @@ class TransaksiService {
         tanggal_transaksi: new Date(),
         total,
         metode_pembayaran,
-        keterangan,
-        umkm_id // PENTING untuk data isolation
+        keterangan
       }, { transaction: t });
+
+      // Generate kode transaksi
+      const kode_transaksi = await this.generateKodeTransaksi(
+        umkm_id, 
+        pelanggan_id, 
+        transaksi.transaksi_id
+      );
+      
+      await transaksi.update({ kode_transaksi }, { transaction: t });
 
       // Create detail transaksi
       for (const item of validatedItems) {
@@ -336,11 +478,8 @@ class TransaksiService {
 
   // Get statistik transaksi
   async getStatistik(filters = {}) {
-    const { umkm_id, start_date, end_date } = filters;
+    const { start_date, end_date } = filters;
     const where = {};
-
-    // Filter berdasarkan UMKM (PENTING untuk data isolation)
-    if (umkm_id) where.umkm_id = umkm_id;
 
     if (start_date && end_date) {
       where.tanggal_transaksi = {

@@ -1,9 +1,6 @@
-// CRM-backend/src/controllers/invoiceController.js
-
 const fs = require('fs');
 const path = require('path');
-const PDFDocument = require('pdfkit'); // Package untuk membuat PDF
-// const { Op } = require('sequelize'); // Tidak diperlukan di generatePdfFile
+const PDFDocument = require('pdfkit'); 
 
 const Invoice = require('../models/Invoice');
 const Transaksi = require('../models/Transaksi');
@@ -166,8 +163,8 @@ const generatePdfFile = (transaction, nomorInvoice, filePath, umkmData) => {
 
         doc.moveDown(1);
         doc.fontSize(10)
-           .fillColor('#4b5563')
-           .text(`Date: ${new Date(transaction.tanggal_transaksi).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, 50, doc.y);
+            .fillColor('#4b5563')
+            .text(`Date: ${new Date(transaction.tanggal_transaksi).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, 50, doc.y);
         doc.moveDown(2);
 
 

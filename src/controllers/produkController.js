@@ -3,6 +3,7 @@ const logger = require('../utils/logger');
 
 class ProdukController {
   async getAllProduk(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const filters = {
         page: req.query.page,
@@ -11,7 +12,7 @@ class ProdukController {
         search: req.query.search
       };
 
-      const result = await produkService.getAllProduk(filters);
+      const result = await produkService.getAllProduk(filters, umkmId);
       res.json({
         success: true,
         message: 'Data produk berhasil diambil',
@@ -22,6 +23,29 @@ class ProdukController {
       next(error);
     }
   }
+
+  async getJenisProduk(req, res, next) {
+    try {
+        const result = await produkService.getJenisProduk();
+        res.json({ success: true, message: 'Data jenis produk berhasil diambil', data: result.data });
+    } catch (error) { 
+        logger.error('Error getJenisProduk:', error);
+        next(error);
+    }
+  }
+
+    async getStatistics(req, res, next) {
+        const umkmId = req.umkmId;
+        try {
+            // Kita belum implementasi service ini, kembalikan data kosong sementara agar frontend tidak 404
+            const data = { total_produk: 0, produk_aktif: 0, total_stok: 0, nilai_inventori: 0 };
+            // const data = await produkService.getStatistics(umkmId); // <-- Nanti implementasi ini
+            res.json({ success: true, message: 'Statistik produk berhasil diambil', data: data });
+        } catch (error) {
+            logger.error('Error getStatistics Produk:', error);
+            next(error);
+        }
+    }
 
   async getProdukById(req, res, next) {
     try {
@@ -45,14 +69,14 @@ class ProdukController {
   }
 
   async createProduk(req, res, next) {
+    const umkmId = req.umkmId; 
+    const dataToSend = {
+      ...req.body,
+      umkm_id: umkmId
+    }
+
     try {
-      // Auto-assign umkm_id dari user yang login
-      const data = {
-        ...req.body,
-        umkm_id: req.umkmId // Dari JWT token
-      };
-      
-      const produk = await produkService.createProduk(data);
+      const produk = await produkService.createProduk(req.body);
       res.status(201).json({
         success: true,
         message: 'Produk berhasil ditambahkan',

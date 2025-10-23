@@ -4,6 +4,7 @@ const Pelanggan = require("./Pelanggan");
 
 const Transaksi = sequelize.define("Transaksi", {
   transaksi_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  kode_transaksi: { type: DataTypes.STRING(20), unique: true, allowNull: true },
   nomor_transaksi: { type: DataTypes.STRING(50), unique: true, allowNull: false },
   tanggal_transaksi: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   total: { type: DataTypes.DECIMAL(12,2), allowNull: false },

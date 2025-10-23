@@ -1,17 +1,32 @@
 const Produk = require('../models/Produk');
+const JenisProduk = require('../models/JenisProduk');
+const KategorIProduk = require('../models/KategoriProduk');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database')
+
 
 class ProdukService {
-  // Get all produk
-  async getAllProduk(filters = {}) {
-    const { page = 1, limit = 10, umkm_id, aktif, search } = filters;
-    const offset = (page - 1) * limit;
+  async generateKodeProduk(umkmId, jenisProdukId, produkId) {
+    const JenisProdukModel = require('../models/JenisProduk');
+    const jenisProduk = await JenisProdukModel.findByPk(jenisProdukId, { attributes: ['kode_jenis'] });
+    
+    // Fallback jika ID Jenis Produk tidak ditemukan atau tidak memiliki kode
+    const jenisCode = jenisProduk?.kode_jenis ? String(jenisProduk.kode_jenis).padStart(2, '0') : '00'; 
 
-    const where = {};
+    const umkmCode = String(umkmId).padStart(2, '0');
+    const produkCode = String(produkId).padStart(2, '0'); 
+
+    // Format: PROD0102003
+    return `PROD${umkmCode}${jenisCode}${produkCode}`;
+  }
+
+  // Get all produk
+  async getAllProduk(filters = {}, umkmId) {
+    const { page = 1, limit = 10, aktif, search } = filters;
+    const offset = (page - 1) * limit;
     
-    // Filter berdasarkan UMKM (PENTING untuk data isolation)
-    if (umkm_id) where.umkm_id = umkm_id;
-    
+    const where = { umkm_id: umkmId };
+
     if (aktif !== undefined) where.aktif = aktif === 'true';
     
     if (search) {
@@ -22,7 +37,8 @@ class ProdukService {
       where,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['produk_id', 'DESC']]
+      order: [['produk_id', 'DESC']],
+      includes: [JenisProduk, ]
     });
 
     return {
@@ -36,6 +52,16 @@ class ProdukService {
     };
   }
 
+  async getJenisProduk() {
+    const JenisProdukModel = require('../models/JenisProduk');
+    const list = await JenisProdukModel.findAll({
+        attributes: ['jenis_produk_id', 'nama_jenis', 'kode_jenis', 'kategori_id'], 
+        include: [require('../models/KategoriProduk')], 
+        order: [['nama_jenis', 'ASC']]
+    });
+    return { success: true, data: list }; 
+}
+
   // Get produk by ID
   async getProdukById(id) {
     const produk = await Produk.findByPk(id);
@@ -47,7 +73,8 @@ class ProdukService {
 
   // Create produk
   async createProduk(data) {
-    const { nama_produk, harga, stok, aktif, umkm_id } = data;
+    const { nama_produk, jenis_produk_id, harga, stok, aktif, umkm_id } = data;
+    const umkmId = umkm_id;
 
     if (!nama_produk) {
       throw new Error('Nama produk wajib diisi');
@@ -59,15 +86,40 @@ class ProdukService {
       throw new Error('UMKM ID wajib diisi');
     }
 
-    const produk = await Produk.create({
-      nama_produk,
-      harga,
-      stok: stok || 0,
-      umkm_id,
-      aktif: aktif !== undefined ? aktif : true
-    });
+    if (!jenis_produk_id) {
+        throw new Error('Jenis produk wajib diisi'); // Tambahkan validasi ini
+    }
 
-    return produk;
+    let t;
+    try {
+        t = await sequelize.transaction();
+
+        // 1. CREATE PRODUK AWAL (Untuk mendapatkan produk_id yang di-auto-generate)
+        const produk = await Produk.create({
+            nama_produk,
+            jenis_produk_id, 
+            harga,
+            stok: stok || 0,
+            aktif: aktif !== undefined ? aktif : true,
+            umkm_id
+        }, { transaction: t });
+        
+        const kode_produk = await this.generateKodeProduk(
+            umkmId, 
+            jenis_produk_id, 
+            produk.produk_id 
+        );
+
+        await produk.update({ kode_produk }, { transaction: t });
+
+        await t.commit();
+
+        return produk; 
+
+    } catch (error) {
+        if (t) await t.rollback();
+        throw error;
+    }
   }
 
   // Update produk

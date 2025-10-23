@@ -34,18 +34,18 @@ class ProdukController {
     }
   }
 
-    async getStatistics(req, res, next) {
-        const umkmId = req.umkmId;
-        try {
-            // Kita belum implementasi service ini, kembalikan data kosong sementara agar frontend tidak 404
-            const data = { total_produk: 0, produk_aktif: 0, total_stok: 0, nilai_inventori: 0 };
-            // const data = await produkService.getStatistics(umkmId); // <-- Nanti implementasi ini
-            res.json({ success: true, message: 'Statistik produk berhasil diambil', data: data });
-        } catch (error) {
-            logger.error('Error getStatistics Produk:', error);
-            next(error);
-        }
+  async getStatistics(req, res, next){
+    const umkmId = req.umkmId;
+    try {
+      const data = await produkService.getStatistics(umkmId);
+      res.json({data: data, message: 'Statistik produk berhasil diambil'});
+    } catch (error) {
+      console.error("🔥 Error di ProdukController.getStatistics:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      next(error);
     }
+  };
+
 
   async getProdukById(req, res, next) {
     try {

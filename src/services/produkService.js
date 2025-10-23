@@ -1,6 +1,6 @@
 const Produk = require('../models/Produk');
 const JenisProduk = require('../models/JenisProduk');
-const KategorIProduk = require('../models/KategoriProduk');
+const kategoriProduk = require('../models/KategoriProduk');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database')
 
@@ -8,10 +8,10 @@ const sequelize = require('../config/database')
 class ProdukService {
   async generateKodeProduk(umkmId, jenisProdukId, produkId) {
     const JenisProdukModel = require('../models/JenisProduk');
-    const jenisProduk = await JenisProdukModel.findByPk(jenisProdukId, { attributes: ['kode_jenis'] });
+    const jenisProduk = await JenisProdukModel.findByPk(jenisProdukId, { attributes: ['jenis_produk_id'] });
     
     // Fallback jika ID Jenis Produk tidak ditemukan atau tidak memiliki kode
-    const jenisCode = jenisProduk?.kode_jenis ? String(jenisProduk.kode_jenis).padStart(2, '0') : '00'; 
+    const jenisCode = jenisProduk?.jenis_produk_id ? String(jenisProduk.jenis_produk_id).padStart(2, '0') : '00'; 
 
     const umkmCode = String(umkmId).padStart(2, '0');
     const produkCode = String(produkId).padStart(2, '0'); 
@@ -55,7 +55,7 @@ class ProdukService {
   async getJenisProduk() {
     const JenisProdukModel = require('../models/JenisProduk');
     const list = await JenisProdukModel.findAll({
-        attributes: ['jenis_produk_id', 'nama_jenis', 'kode_jenis', 'kategori_id'], 
+        attributes: ['jenis_produk_id', 'nama_jenis', 'kategori_id'], 
         include: [require('../models/KategoriProduk')], 
         order: [['nama_jenis', 'ASC']]
     });
@@ -84,7 +84,7 @@ class ProdukService {
     }
 
     if (!jenis_produk_id) {
-        throw new Error('Jenis produk wajib diisi'); // Tambahkan validasi ini
+        throw new Error('Jenis produk wajib diisi'); 
     }
 
     let t;
@@ -147,6 +147,23 @@ class ProdukService {
 
     await produk.destroy();
     return { message: 'Produk berhasil dihapus' };
+  }
+
+  async getStatistics() {
+    try {
+      const totalProduk = await Produk.count();
+      const totalJenis = await JenisProduk.count();
+      const totalKategori = await kategoriProduk.count();
+
+      return {
+        totalProduk,
+        totalJenis,
+        totalKategori
+      };
+    } catch (error) {
+      console.error("🔥 Error di produkService.getStatistics:", error);
+      throw error;
+    }
   }
 }
 

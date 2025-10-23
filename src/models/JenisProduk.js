@@ -4,9 +4,8 @@ const KategoriProduk = require("./KategoriProduk");
 
 const JenisProduk = sequelize.define("JenisProduk", {
     jenis_produk_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    nama_jenis: { type: DataTypes.STRING(50), allowNull: false },
-    kode_jenis: { type: DataTypes.STRING(2), unique: true, allowNull: false }, 
-    kategori_id: { type: DataTypes.INTEGER, allowNull: false }
+    nama_jenis: { type: DataTypes.STRING(20), allowNull: false },
+    kategori_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'kategori_produk', key: 'kategori_id' } }
 }, {
     tableName: "JENIS_PRODUK",
     timestamps: false

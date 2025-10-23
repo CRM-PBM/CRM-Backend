@@ -247,8 +247,12 @@ class TransaksiService {
 
 
   // Get transaksi by ID
-  async getTransaksiById(id) {
-    const transaksi = await Transaksi.findByPk(id, {
+  async getTransaksiById(id, umkmId) {
+    const transaksi = await Transaksi.findOne({
+      where: { 
+        transaksi_id: id,
+        umkm_id: umkmId 
+      },
       include: [
         { 
           model: Pelanggan, 
@@ -343,7 +347,8 @@ class TransaksiService {
         tanggal_transaksi: new Date(),
         total,
         metode_pembayaran,
-        keterangan
+        keterangan,
+        umkm_id  // ⭐ Tambahkan umkm_id
       }, { transaction: t });
 
       // Generate kode transaksi
@@ -365,7 +370,7 @@ class TransaksiService {
 
       await t.commit();
 
-      return this.getTransaksiById(transaksi.transaksi_id);
+      return this.getTransaksiById(transaksi.transaksi_id, umkm_id);
 
     } catch (error) {
       await t.rollback();
@@ -374,8 +379,13 @@ class TransaksiService {
   }
 
   // Update transaksi
-  async updateTransaksi(id, data) {
-    const transaksi = await Transaksi.findByPk(id);
+  async updateTransaksi(id, data, umkmId) {
+    const transaksi = await Transaksi.findOne({
+      where: { 
+        transaksi_id: id,
+        umkm_id: umkmId 
+      }
+    });
 
     if (!transaksi) {
       throw new Error('Transaksi tidak ditemukan');
@@ -389,15 +399,19 @@ class TransaksiService {
       pelanggan_id: pelanggan_id || transaksi.pelanggan_id
     });
 
-    return this.getTransaksiById(id);
+    return this.getTransaksiById(id, umkmId);
   }
 
   // Delete transaksi
-  async deleteTransaksi(id) {
+  async deleteTransaksi(id, umkmId) {
     const t = await sequelize.transaction();
 
     try {
-      const transaksi = await Transaksi.findByPk(id, {
+      const transaksi = await Transaksi.findOne({
+        where: { 
+          transaksi_id: id,
+          umkm_id: umkmId 
+        },
         include: [DetailTransaksi],
         transaction: t
       });

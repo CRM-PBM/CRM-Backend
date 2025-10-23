@@ -11,10 +11,26 @@ const Produk = sequelize.define("Produk", {
   jenis_produk_id: { type: DataTypes.INTEGER, allowNull: false },
   harga: { type: DataTypes.DECIMAL(12,2), allowNull: false },
   stok: { type: DataTypes.INTEGER, defaultValue: 0 },
+  umkm_id: { 
+    type: DataTypes.INTEGER, 
+    allowNull: false,
+    references: {
+      model: 'UMKM',
+      key: 'umkm_id'
+    }
+  },
   aktif: { type: DataTypes.BOOLEAN, defaultValue: true }
 }, {
   tableName: "PRODUK",
   timestamps: false
 });
+
+// Relasi dengan JenisProduk
+Produk.belongsTo(JenisProduk, { foreignKey: "jenis_produk_id" });
+JenisProduk.hasMany(Produk, { foreignKey: "jenis_produk_id" });
+
+// Relasi dengan UMKM
+Produk.belongsTo(Umkm, { foreignKey: "umkm_id", as: 'umkm' });
+Umkm.hasMany(Produk, { foreignKey: "umkm_id", as: 'produk' });
 
 module.exports = Produk;

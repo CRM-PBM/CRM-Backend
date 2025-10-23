@@ -5,6 +5,7 @@ const logger = require('../utils/logger');
 class TransaksiController {
   // GET /api/transaksi - Get all transaksi
   async getAllTransaksi(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const filters = {
         page: req.query.page,
@@ -31,9 +32,10 @@ class TransaksiController {
 
     // GET /api/transaksi/:id - Get transaksi by ID
     async getTransaksiById(req, res, next) {
+        const umkmId = req.umkmId;
         try {
             const { id } = req.params;
-            const transaksi = await transaksiService.getTransaksiById(id);
+            const transaksi = await transaksiService.getTransaksiById(id, umkmId);
 
             res.json({
                 success: true,
@@ -54,8 +56,14 @@ class TransaksiController {
 
   // POST /api/transaksi - Create new transaksi
   async createTransaksi(req, res, next) {
+    const umkmId = req.umkmId;
+    const dataToSend = {
+      ...req.body,
+      umkm_id: umkmId
+    };
+
     try {
-      const transaksi = await transaksiService.createTransaksi(req.body);
+      const transaksi = await transaksiService.createTransaksi(dataToSend);
 
             res.status(201).json({
                 success: true,
@@ -81,9 +89,10 @@ class TransaksiController {
 
     // PUT /api/transaksi/:id - Update transaksi
     async updateTransaksi(req, res, next) {
+        const umkmId = req.umkmId;
         try {
             const { id } = req.params;
-            const transaksi = await transaksiService.updateTransaksi(id, req.body);
+            const transaksi = await transaksiService.updateTransaksi(id, req.body, umkmId);
 
             res.json({
                 success: true,
@@ -104,9 +113,10 @@ class TransaksiController {
 
     // DELETE /api/transaksi/:id - Delete transaksi
     async deleteTransaksi(req, res, next) {
+        const umkmId = req.umkmId;
         try {
             const { id } = req.params;
-            const result = await transaksiService.deleteTransaksi(id);
+            const result = await transaksiService.deleteTransaksi(id, umkmId);
 
             res.json({
                 success: true,

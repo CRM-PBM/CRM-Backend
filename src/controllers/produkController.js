@@ -48,9 +48,10 @@ class ProdukController {
     }
 
   async getProdukById(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const { id } = req.params;
-      const produk = await produkService.getProdukById(id);
+      const produk = await produkService.getProdukById(id, umkmId);
       res.json({
         success: true,
         message: 'Data produk berhasil diambil',
@@ -76,7 +77,7 @@ class ProdukController {
     }
 
     try {
-      const produk = await produkService.createProduk(req.body);
+      const produk = await produkService.createProduk(dataToSend);
       res.status(201).json({
         success: true,
         message: 'Produk berhasil ditambahkan',
@@ -95,9 +96,10 @@ class ProdukController {
   }
 
   async updateProduk(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const { id } = req.params;
-      const produk = await produkService.updateProduk(id, req.body);
+      const produk = await produkService.updateProduk(id, req.body, umkmId);
       res.json({
         success: true,
         message: 'Produk berhasil diupdate',
@@ -116,9 +118,10 @@ class ProdukController {
   }
 
   async deleteProduk(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const { id } = req.params;
-      const result = await produkService.deleteProduk(id);
+      const result = await produkService.deleteProduk(id, umkmId);
       res.json({
         success: true,
         ...result

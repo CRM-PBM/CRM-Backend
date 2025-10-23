@@ -63,8 +63,13 @@ class ProdukService {
 }
 
   // Get produk by ID
-  async getProdukById(id) {
-    const produk = await Produk.findByPk(id);
+  async getProdukById(id, umkmId) {
+    const produk = await Produk.findOne({
+      where: { 
+        produk_id: id,
+        umkm_id: umkmId 
+      }
+    });
     if (!produk) {
       throw new Error('Produk tidak ditemukan');
     }
@@ -123,8 +128,13 @@ class ProdukService {
   }
 
   // Update produk
-  async updateProduk(id, data) {
-    const produk = await Produk.findByPk(id);
+  async updateProduk(id, data, umkmId) {
+    const produk = await Produk.findOne({
+      where: { 
+        produk_id: id,
+        umkm_id: umkmId 
+      }
+    });
     if (!produk) {
       throw new Error('Produk tidak ditemukan');
     }
@@ -142,8 +152,13 @@ class ProdukService {
   }
 
   // Delete produk
-  async deleteProduk(id) {
-    const produk = await Produk.findByPk(id);
+  async deleteProduk(id, umkmId) {
+    const produk = await Produk.findOne({
+      where: { 
+        produk_id: id,
+        umkm_id: umkmId 
+      }
+    });
     if (!produk) {
       throw new Error('Produk tidak ditemukan');
     }

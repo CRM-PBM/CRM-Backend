@@ -29,9 +29,10 @@ class PelangganController {
   }
 
   async getPelangganById(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const { id } = req.params;
-      const pelanggan = await pelangganService.getPelangganById(id);
+      const pelanggan = await pelangganService.getPelangganById(id, umkmId);
 
       res.json({
         success: true,
@@ -56,7 +57,7 @@ class PelangganController {
     };
 
     try {
-      const pelanggan = await pelangganService.createPelanggan(req.body);
+      const pelanggan = await pelangganService.createPelanggan(dataToSend);
 
       res.status(201).json({
         success: true,
@@ -73,9 +74,10 @@ class PelangganController {
   }
 
   async updatePelanggan(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const { id } = req.params;
-      const pelanggan = await pelangganService.updatePelanggan(id, req.body);
+      const pelanggan = await pelangganService.updatePelanggan(id, req.body, umkmId);
 
       res.json({
         success: true,
@@ -95,9 +97,10 @@ class PelangganController {
   }
 
   async deletePelanggan(req, res, next) {
+    const umkmId = req.umkmId;
     try {
       const { id } = req.params;
-      const result = await pelangganService.deletePelanggan(id);
+      const result = await pelangganService.deletePelanggan(id, umkmId);
 
       res.json({
         success: true,

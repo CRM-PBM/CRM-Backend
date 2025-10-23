@@ -104,31 +104,32 @@ class PelangganService {
       const existingEmail = await Pelanggan.findOne({ where: { email } });
       if (existingEmail) throw new Error('Email sudah terdaftar');
     }
+
     let t;
     try {
-        t = await sequelize.transaction();
+      t = await sequelize.transaction();
 
-        const kode_pelanggan = await this.generateKodePelanggan(umkm_id, gender); 
-        const pelanggan = await Pelanggan.create({
-            nama,
-            telepon,
-            email,
-            gender,
-            alamat,
-            level,
-            umkm_id,
-            kode_pelanggan 
-        }, { transaction: t });
+      const kode_pelanggan = await this.generateKodePelanggan(umkm_id, gender);
+      const pelanggan = await Pelanggan.create({
+        nama,
+        telepon,
+        email,
+        gender,
+        alamat,
+        level,
+        umkm_id,
+        kode_pelanggan
+      }, { transaction: t });
 
-        await t.commit();
-        return this.getPelangganById(pelanggan.pelanggan_id);
+      await t.commit();
+      return this.getPelangganById(pelanggan.pelanggan_id);
 
     } catch (error) {
-        await t.rollback();
-        if (error.name === 'SequelizeUniqueConstraintError' && error.fields.kode_pelanggan) {
-            throw new Error('Gagal membuat kode pelanggan unik. Coba lagi.');
-        }
-        throw error;
+      if (t) await t.rollback();
+      if (error.name === 'SequelizeUniqueConstraintError' && error.fields && error.fields.kode_pelanggan) {
+        throw new Error('Gagal membuat kode pelanggan unik. Coba lagi.');
+      }
+      throw error;
     }
   }
 
@@ -141,11 +142,12 @@ class PelangganService {
       where.umkm_id = umkm_id;
     }
     
-    const pelanggan = await Pelanggan.findOne({ where });
+  const pelanggan = await Pelanggan.findOne({ where });
 
-    if (!pelanggan) throw new Error('Pelanggan tidak ditemukan');
+  if (!pelanggan) throw new Error('Pelanggan tidak ditemukan');
 
-    const { nama, telepon, email, gender, alamat, level, umkm_id } = data;
+  // Ambil umkm_id dari body sebagai newUmkmId untuk menghindari redeclare
+  const { nama, telepon, email, gender, alamat, level, umkm_id: newUmkmId } = data;
 
     if (email && email !== pelanggan.email) {
       const existingEmail = await Pelanggan.findOne({ where: { email } });
@@ -159,7 +161,7 @@ class PelangganService {
       gender: gender || pelanggan.gender,
       level: level !== undefined ? level : pelanggan.level,
       alamat: alamat !== undefined ? alamat : pelanggan.alamat,
-      umkm_id: umkm_id || pelanggan.umkm_id,
+      umkm_id: newUmkmId || pelanggan.umkm_id,
       updated_at: new Date()
     });
 

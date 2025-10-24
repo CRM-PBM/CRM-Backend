@@ -10,7 +10,6 @@ class ProdukService {
     const JenisProdukModel = require('../models/JenisProduk');
     const jenisProduk = await JenisProdukModel.findByPk(jenisProdukId, { attributes: ['jenis_produk_id'] });
     
-    // Fallback jika ID Jenis Produk tidak ditemukan atau tidak memiliki kode
     const jenisCode = jenisProduk?.jenis_produk_id ? String(jenisProduk.jenis_produk_id).padStart(2, '0') : '00'; 
 
     const umkmCode = String(umkmId).padStart(2, '0');
@@ -164,6 +163,30 @@ class ProdukService {
       console.error("🔥 Error di produkService.getStatistics:", error);
       throw error;
     }
+  }
+
+  async toggleActive(id, umkmId) {
+    const produk = await Produk.findOne({
+        where: { produk_id: id, umkm_id: umkmId },
+      attributes: ['aktif', 'produk_id']
+    });
+
+    if (!produk) {
+        throw new Error('Produk tidak ditemukan atau tidak berhak diakses');
+    };
+    
+    const newStatus = !produk.aktif;
+    
+    await Produk.update(
+        { aktif: newStatus },
+        { 
+          where: { 
+              produk_id: id, 
+              umkm_id: umkmId
+          } 
+        }
+    );
+    return { produk_id: id, aktif: newStatus };
   }
 }
 

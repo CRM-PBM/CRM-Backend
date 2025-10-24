@@ -11,5 +11,6 @@ router.get('/:id', auth, produkController.getProdukById.bind(produkController));
 router.post('/', auth, produkController.createProduk.bind(produkController));
 router.put('/:id', produkController.updateProduk.bind(produkController));
 router.delete('/:id', produkController.deleteProduk.bind(produkController));
+router.patch('/:id/toggle-active', auth, produkController.toggleActive.bind(produkController));
 
 module.exports = router;

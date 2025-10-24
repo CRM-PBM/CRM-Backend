@@ -134,6 +134,26 @@ class ProdukController {
       next(error);
     }
   }
+
+  async toggleActive(req, res, next) {
+    const umkmId = req.umkmId;
+    const { id } = req.params;
+    try {
+        // Panggil service untuk mengubah status
+        const produk = await produkService.toggleActive(id, umkmId);
+        res.json({
+            success: true,
+            message: 'Status produk berhasil diubah',
+            data: produk
+        });
+    } catch (error) {
+        logger.error(`Error toggling active status for product ${id}:`, error);
+        if (error.message.includes('tidak ditemukan')) {
+            return res.status(404).json({ success: false, message: error.message });
+        }
+        next(error);
+    }
+  }
 }
 
 module.exports = new ProdukController();

@@ -4,31 +4,47 @@ const KategoriProduk = require('../models/KategoriProduk');
 
 class JenisProdukService {
     // --- JENIS PRODUK ---
-    async getAllJenis() {
+    async getAllJenis(umkm_id) {
         const data = await JenisProduk.findAll({
             include: [
-                { model: KategoriProduk, attributes: ['nama_kategori'] }
+                { 
+                    model: KategoriProduk, 
+                    attributes: ['nama_kategori'], 
+                    where: { umkm_id } 
+                }
             ],
-            order: [['nama_jenis', 'ASC']]
+            order: [['nama_jenis', 'ASC']],
+            where: { umkm_id }
         });
         return { success: true, data };
     }
 
     async createJenis(data) {
-        // Pastikan nama_jenis unik dalam satu kategori
+        const { nama_jenis, kategori_id, umkm_id } = data;
+
+        if (!nama_jenis || !kategori_id)
+            throw new Error('Nama jenis dan kategori wajib diisi');
+
         const existing = await JenisProduk.findOne({
             where: {
                 [Op.and]: [
-                    { nama_jenis: data.nama_jenis },
-                    { kategori_id: data.kategori_id }
+                    { nama_jenis },
+                    { kategori_id },
+                    { umkm_id }
                 ]
             }
         });
         if (existing) throw new Error('Jenis produk sudah ada dalam kategori ini');
 
-        const newJenis = await JenisProduk.create(data);
+        const newJenis = await JenisProduk.create({
+            nama_jenis,
+            kategori_id,
+            umkm_id
+        });
+
         return { success: true, data: newJenis };
     }
+
 
     async updateJenis(id, data) {
         const jenis = await JenisProduk.findByPk(id);

@@ -6,7 +6,8 @@ class KategoriController {
     // --- KATEGORI PRODUK ---
     async getAllKategori(req, res, next) {
         try {
-            const result = await kategoriService.getAllKategori();
+            const umkmId = req.umkmId; 
+            const result = await kategoriService.getAllKategori(umkmId);
             res.json({ success: true, message: 'Data kategori berhasil diambil', data: result.data });
         } catch (error) {
             logger.error('Error getAllKategori:', error);
@@ -16,10 +17,21 @@ class KategoriController {
 
     async createKategori(req, res, next) {
         try {
+            const umkmId = req.umkmId;
             console.log('🟢 Data diterima dari frontend:', req.body);
-            const data = req.body;
+            const data = {
+                ...req.body,
+                umkm_id: umkmId
+            };
+
+
             const newKategori = await kategoriService.createKategori(data);
-            res.status(201).json({ success: true, message: 'Kategori berhasil ditambahkan', data: newKategori });
+            res.status(201).json({ 
+                success: true, 
+                message: 'Kategori berhasil ditambahkan', 
+                data: newKategori 
+            });
+            
         } catch (error) {
             logger.error('Error createKategori:', error);
             if (error.message.includes('sudah ada')) {

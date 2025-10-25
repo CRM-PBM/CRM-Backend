@@ -5,8 +5,9 @@ const JenisProduk = require('../models/JenisProduk');
 class KategoriService {
 
     // --- KATEGORI PRODUK ---
-    async getAllKategori() {
+    async getAllKategori(umkm_id) {
         const data = await KategoriProduk.findAll({
+            where: { umkm_id },
             order: [['nama_kategori', 'ASC']]
         });
         return { success: true, data };
@@ -14,17 +15,20 @@ class KategoriService {
 
     async createKategori(data) {
         try {
-            console.log('🟢 Data masuk ke service:', data);
-            const { nama_kategori, deskripsi } = data;
+            console.log('Kategori\n 🟢 Data masuk ke service:', data);
+            const { nama_kategori, deskripsi, umkm_id } = data;
 
             if (!nama_kategori) throw new Error('Nama kategori wajib diisi');
 
-            const existing = await KategoriProduk.findOne({ where: { nama_kategori } });
+            const existing = await KategoriProduk.findOne({ 
+                where: { nama_kategori, umkm_id }
+            });
             if (existing) throw new Error('Nama kategori sudah ada');
 
             const kategori = await KategoriProduk.create({
                 nama_kategori,
                 deskripsi,
+                umkm_id
             });
 
             return kategori;

@@ -5,7 +5,8 @@ class JenisProdukController {
     // --- JENIS PRODUK ---
     async getAllJenis(req, res, next) {
         try {
-            const result = await jenisProdukService.getAllJenis();
+            const umkmId = req.umkmId;
+            const result = await jenisProdukService.getAllJenis(umkmId);
             res.json({ success: true, message: 'Data jenis produk berhasil diambil', data: result.data });
         } catch (error) {
             logger.error('Error getAllJenis:', error);
@@ -15,7 +16,13 @@ class JenisProdukController {
 
     async createJenis(req, res, next) {
         try {
-            const newJenis = await jenisProdukService.createJenis(req.body);
+            const umkmId = req.umkmId;
+            const data = {
+                ...req.body,
+                umkm_id: umkmId
+            };
+
+            const newJenis = await jenisProdukService.createJenis(data);
             res.status(201).json({ success: true, message: 'Jenis produk berhasil ditambahkan', data: newJenis.data });
         } catch (error) {
             logger.error('Error createJenis:', error);

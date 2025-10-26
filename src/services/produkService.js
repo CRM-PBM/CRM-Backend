@@ -148,22 +148,36 @@ class ProdukService {
     return { message: 'Produk berhasil dihapus' };
   }
 
-  async getStatistics() {
+  async getStatistics(umkmId) {
     try {
-      const totalProduk = await Produk.count();
-      const totalJenis = await JenisProduk.count();
-      const totalKategori = await kategoriProduk.count();
+      const totalProduk = await Produk.count({ where: { umkm_id: umkmId } });
+      const produkAktif = await Produk.count({ where: { umkm_id: umkmId, aktif: true } });
+      const totalStok = await Produk.sum('stok', { where: { umkm_id: umkmId } });
+      const nilaiInventoriResult = await Produk.findOne({
+        attributes: [
+          [sequelize.fn('SUM', sequelize.literal('stok * harga')), 'nilai_inventori']
+        ],
+        where: { umkm_id: umkmId },
+        raw: true
+      });
+
+      const nilaiInventori = nilaiInventoriResult?.nilai_inventori || 0;
 
       return {
-        totalProduk,
-        totalJenis,
-        totalKategori
+        success: true,
+        data: {
+          total_produk: totalProduk || 0,
+          produk_aktif: produkAktif || 0,
+          total_stok: totalStok || 0,
+          nilai_inventori: nilaiInventori || 0
+        }
       };
     } catch (error) {
       console.error("🔥 Error di produkService.getStatistics:", error);
       throw error;
     }
   }
+
 
   async toggleActive(id, umkmId) {
     const produk = await Produk.findOne({

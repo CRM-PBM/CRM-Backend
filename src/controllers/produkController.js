@@ -34,17 +34,17 @@ class ProdukController {
     }
   }
 
-  async getStatistics(req, res, next){
-    const umkmId = req.umkmId;
+  async getStatistics(req, res, next) {
     try {
-      const data = await produkService.getStatistics(umkmId);
-      res.json({data: data, message: 'Statistik produk berhasil diambil'});
+      const umkmId = req.umkmId;
+      const result = await produkService.getStatistics(umkmId);
+      res.json(result);
     } catch (error) {
       console.error("🔥 Error di ProdukController.getStatistics:", error);
       res.status(500).json({ error: "Internal Server Error" });
-      next(error);
     }
-  };
+  }
+
 
 
   async getProdukById(req, res, next) {

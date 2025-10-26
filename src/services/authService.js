@@ -61,7 +61,7 @@ exports.loginService = async (data) => {
 
   const user = await User.findOne({
     where: { email },
-    include: [{ model: Umkm, attributes: ['umkm_id', 'nama_umkm'] }]
+    include: [{ model: Umkm, attributes: ['umkm_id', 'nama_umkm', 'nama_pemilik'] }]
   });
 
   if (!user) throw new Error('Kredensial tidak valid (Email tidak ditemukan)');
@@ -76,7 +76,7 @@ exports.loginService = async (data) => {
   };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   });
 
   await user.update({ last_login: new Date() });
@@ -89,7 +89,8 @@ exports.loginService = async (data) => {
       email: user.email,
       role: user.role,
       umkm_id: user.Umkm.umkm_id,
-      nama_umkm: user.Umkm.nama_umkm
+      nama_umkm: user.Umkm.nama_umkm,
+      nama_pemilik: user.Umkm.nama_pemilik
     }
   };
 };

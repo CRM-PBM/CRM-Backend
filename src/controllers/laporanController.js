@@ -1,14 +1,14 @@
 const laporanService = require('../services/laporanService'); // Sesuaikan path
 
-exports.getSalesReports = async (req, res) => {
+exports.getTransactionReports = async (req, res) => {
     const { umkmId } = req;
     const { startDate, endDate } = req.query;
 
     try {
-        const data = await laporanService.getSalesReports(umkmId, startDate, endDate);
+        const data = await laporanService.getTransactionReports(umkmId, startDate, endDate);
         return res.status(200).json({ success: true, data });
     } catch (error) {
-        console.error('Error in getSalesReports controller:', error);
+        console.error('Error in getTransactionReports controller:', error);
         return res.status(500).json({ success: false, message: 'Gagal mengambil laporan penjualan.' });
     }
 };

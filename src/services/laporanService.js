@@ -23,8 +23,8 @@ const getDateRangeFilter = (startDate, endDate) => {
 };
 
 class LaporanService {
-    // 1. Logika Laporan Penjualan
-    async getSalesReports(umkmId, startDate, endDate) {
+    // 1. Logika Laporan Transaksi
+    async getTransactionReports(umkmId, startDate, endDate) {
         const dateFilter = getDateRangeFilter(startDate, endDate);
 
         // A. Query Summary/Agregasi

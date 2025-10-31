@@ -4,7 +4,7 @@ const laporanController = require('../controllers/laporanController'); // Sesuai
 const auth = require('../middleware/authHandler')
 
 // Route untuk Laporan Penjualan
-router.get('/penjualan', auth, laporanController.getSalesReports);
+router.get('/transaksi', auth, laporanController.getTransactionReports);
 
 // Route untuk Laporan Pelanggan
 router.get('/pelanggan', auth, laporanController.getCustomerReport);

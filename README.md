@@ -183,7 +183,14 @@ Import `docs/postman-collection.json` ke Postman.
 
 ### Setup Guides
 - [🚀 Setup Broadcast WhatsApp](./SETUP-BROADCAST.md) - **Panduan lengkap setup Watzap.id**
+- [🔧 Troubleshooting Watzap.id](./TROUBLESHOOTING-WATZAP.md) - **Solusi error "Instance Not Started"**
 - [Backend Structure](./README-backend-structure.md)
+
+### 🌐 Deployment Guides
+- [🚂 Deploy ke Railway.app](./DEPLOY-RAILWAY.md) - **RECOMMENDED: Setup 5 menit, MySQL included**
+- [☁️ Platform Options](./DEPLOY-OPTIONS.md) - Perbandingan Railway, Render, Heroku, AWS, dll
+
+> ⚠️ **PENTING:** Aplikasi ini **TIDAK KOMPATIBEL** dengan Cloudflare Workers karena menggunakan Express.js + MySQL. Gunakan Railway.app atau platform PaaS lainnya.
 
 ### Testing Tools
 - [Postman Collection - General](./docs/postman-collection.json)

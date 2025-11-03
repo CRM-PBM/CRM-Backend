@@ -81,7 +81,7 @@ class LaporanService {
         try {
             const customerReport = await Pelanggan.findAll({
                 attributes: [
-                    'pelanggan_id', 'nama', 'Kode_pelanggan','telepon', 'email', 'alamat', 'level','created_at',
+                    'pelanggan_id', 'nama', 'Kode_pelanggan','telepon', 'gender', 'email', 'alamat', 'level','created_at',
                     [fn('COUNT', col('Transaksis.transaksi_id')), 'jumlah_transaksi'],
                     [fn('SUM', col('Transaksis.total')), 'total_pembelian']
                 ],
@@ -94,7 +94,7 @@ class LaporanService {
                     required: true 
                 }],
                 where: { umkm_id: umkmId },
-                group: [['Pelanggan.pelanggan_id', 'Pelanggan.nama', 'Pelanggan.Kode_pelanggan', 'Pelanggan.telepon', 'Pelanggan.email','Pelanggan.alamat','Pelanggan.level','Pelanggan.created_at']],
+                group: [['Pelanggan.pelanggan_id', 'Pelanggan.nama', 'Pelanggan.Kode_pelanggan', 'Pelanggan.telepon', 'Pelanggan.gender', 'Pelanggan.email','Pelanggan.alamat','Pelanggan.level','Pelanggan.created_at']],
                 order: [[literal('total_pembelian'), 'DESC']],
                 raw: true 
             });

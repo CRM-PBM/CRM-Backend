@@ -217,7 +217,9 @@ class TransaksiService {
                 umkmFilterInclude,
                 { 
                     model: Pelanggan, 
-                    attributes: ['pelanggan_id', 'nama', 'telepon', 'email'] 
+                    attributes: ['pelanggan_id', 'nama', 'telepon', 'email'],
+                    required: true, 
+                    where: { umkm_id: umkmId }
                 },
                 {
                     model: DetailTransaksi,
@@ -231,7 +233,8 @@ class TransaksiService {
             ],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            order: [['tanggal_transaksi', 'DESC']]
+            order: [['tanggal_transaksi', 'DESC']], 
+            distinct: true
         });
 
         return {

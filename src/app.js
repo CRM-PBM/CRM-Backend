@@ -7,6 +7,9 @@ const authRoutes = require('./routes/authRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes')
 const transaksiRoutes = require('./routes/transaksiRoutes')
 const pelangganRoutes = require('./routes/pelanggan')
+const kategoriRoutes = require('./routes/kategoriRoutes');
+const jenisProdukRoutes = require('./routes/jenisProdukRoutes');
+const laporanRoutes = require('./routes/laporanRoutes');
 
 const app = express();
 
@@ -28,6 +31,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/invoice', invoiceRoutes);
 app.use('/api/transaksi', transaksiRoutes);
 app.use('/api/pelanggan', pelangganRoutes);
+app.use('/api/kategori', kategoriRoutes);
+app.use('/api/jenis', jenisProdukRoutes);
+app.use('/api/laporan', laporanRoutes);
 
 
 // health endpoint

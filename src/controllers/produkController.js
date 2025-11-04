@@ -34,18 +34,18 @@ class ProdukController {
     }
   }
 
-    async getStatistics(req, res, next) {
-        const umkmId = req.umkmId;
-        try {
-            // Kita belum implementasi service ini, kembalikan data kosong sementara agar frontend tidak 404
-            const data = { total_produk: 0, produk_aktif: 0, total_stok: 0, nilai_inventori: 0 };
-            // const data = await produkService.getStatistics(umkmId); // <-- Nanti implementasi ini
-            res.json({ success: true, message: 'Statistik produk berhasil diambil', data: data });
-        } catch (error) {
-            logger.error('Error getStatistics Produk:', error);
-            next(error);
-        }
+  async getStatistics(req, res, next) {
+    try {
+      const umkmId = req.umkmId;
+      const result = await produkService.getStatistics(umkmId);
+      res.json(result);
+    } catch (error) {
+      console.error("🔥 Error di ProdukController.getStatistics:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
+  }
+
+
 
   async getProdukById(req, res, next) {
     const umkmId = req.umkmId;
@@ -135,6 +135,26 @@ class ProdukController {
         });
       }
       next(error);
+    }
+  }
+
+  async toggleActive(req, res, next) {
+    const umkmId = req.umkmId;
+    const { id } = req.params;
+    try {
+        // Panggil service untuk mengubah status
+        const produk = await produkService.toggleActive(id, umkmId);
+        res.json({
+            success: true,
+            message: 'Status produk berhasil diubah',
+            data: produk
+        });
+    } catch (error) {
+        logger.error(`Error toggling active status for product ${id}:`, error);
+        if (error.message.includes('tidak ditemukan')) {
+            return res.status(404).json({ success: false, message: error.message });
+        }
+        next(error);
     }
   }
 }

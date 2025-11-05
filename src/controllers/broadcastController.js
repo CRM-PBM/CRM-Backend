@@ -1,5 +1,6 @@
 const broadcastService = require('../services/broadcastService');
 const logger = require('../utils/logger');
+const { generateImageUrl } = require('../middleware/uploadBroadcastImage');
 
 class BroadcastController {
   // GET /api/broadcast - Get all broadcast
@@ -70,7 +71,8 @@ class BroadcastController {
       if (
         error.message.includes('wajib diisi') ||
         error.message.includes('tidak ditemukan') ||
-        error.message.includes('Pilih minimal')
+        error.message.includes('Pilih minimal') ||
+        error.message.includes('URL gambar tidak valid')
       ) {
         return res.status(400).json({
           success: false,
@@ -172,6 +174,56 @@ class BroadcastController {
       });
     } catch (error) {
       logger.error('Error checkDeviceStatus:', error);
+      next(error);
+    }
+  }
+
+  // POST /api/broadcast/upload-image - Upload gambar broadcast
+  async uploadImage(req, res, next) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'File gambar tidak ditemukan. Kirim dengan form-data key "image"'
+        });
+      }
+
+      // Generate public URL dari uploaded file
+      const imageUrl = generateImageUrl(req.file);
+
+      logger.info('Image uploaded:', {
+        filename: req.file.filename,
+        size: req.file.size,
+        url: imageUrl
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Gambar berhasil diupload',
+        data: {
+          filename: req.file.filename,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          image_url: imageUrl
+        }
+      });
+    } catch (error) {
+      logger.error('Error uploadImage:', error);
+      
+      if (error.message && error.message.includes('format tidak didukung')) {
+        return res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'Ukuran file terlalu besar. Max 5MB.'
+        });
+      }
+
       next(error);
     }
   }

@@ -106,7 +106,7 @@ class BroadcastService {
 
   // Create broadcast (draft)
   async createBroadcast(data) {
-    const { judul_pesan, isi_pesan, pelanggan_ids, user_id, umkm_id } = data;
+    const { judul_pesan, isi_pesan, pelanggan_ids, user_id, umkm_id, image_url } = data;
 
     // Validasi
     if (!judul_pesan) {
@@ -119,6 +119,11 @@ class BroadcastService {
       throw new Error('Pilih minimal 1 pelanggan penerima');
     }
 
+    // Validasi URL gambar jika ada
+    if (image_url && !watzapService.isValidImageUrl(image_url)) {
+      throw new Error('URL gambar tidak valid. Gunakan HTTP/HTTPS URL dengan extension .jpg, .jpeg, .png, .gif, atau .webp');
+    }
+
     const t = await sequelize.transaction();
 
     try {
@@ -126,6 +131,7 @@ class BroadcastService {
       const broadcast = await Broadcast.create({
         judul_pesan,
         isi_pesan,
+        image_url: image_url || null, // Simpan URL gambar jika ada
         tanggal_kirim: new Date(),
         status: 'draft',
         user_id: user_id || null,
@@ -221,6 +227,9 @@ class BroadcastService {
       details: []
     };
 
+    // Tentukan apakah kirim gambar atau teks
+    const hasImage = broadcast.image_url && broadcast.image_url.trim() !== '';
+
     for (let i = 0; i < details.length; i++) {
       const detail = details[i];
       const pelanggan = detail.Pelanggan;
@@ -232,12 +241,24 @@ class BroadcastService {
           pelanggan
         );
 
-        // Kirim via Watzap dengan number_key dari database UMKM
-        const result = await watzapService.sendMessage(
-          pelanggan.telepon,
-          personalizedMessage,
-          umkm.wa_number_key
-        );
+        let result;
+
+        if (hasImage) {
+          // Kirim gambar dengan caption
+          result = await watzapService.sendImage(
+            pelanggan.telepon,
+            broadcast.image_url,
+            personalizedMessage,
+            umkm.wa_number_key
+          );
+        } else {
+          // Kirim pesan text saja
+          result = await watzapService.sendMessage(
+            pelanggan.telepon,
+            personalizedMessage,
+            umkm.wa_number_key
+          );
+        }
 
         if (result.success) {
           // Update status detail menjadi sent

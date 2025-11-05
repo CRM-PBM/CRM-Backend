@@ -6,6 +6,11 @@ const Broadcast = sequelize.define("Broadcast", {
   broadcast_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   judul_pesan: { type: DataTypes.STRING(200), allowNull: false },
   isi_pesan: { type: DataTypes.TEXT, allowNull: false },
+  image_url: { 
+    type: DataTypes.TEXT, 
+    allowNull: true,
+    comment: 'URL gambar untuk attachment (jika ada)'
+  },
   tanggal_kirim: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   status: { type: DataTypes.STRING(50) },
   umkm_id: { 

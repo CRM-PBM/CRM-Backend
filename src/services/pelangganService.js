@@ -252,6 +252,246 @@ class PelangganService {
     };
   }
 
+  /**
+   * Import pelanggan dari file CSV atau Excel
+   */
+  async importPelangganFromFile(file, umkmId) {
+    const results = [];
+    const errors = [];
+    let successful = 0;
+    let failed = 0;
+
+    try {
+      let rows = [];
+
+      // Parse file based on extension
+      if (file.originalname.endsWith('.csv')) {
+        rows = this.parseCSV(file.buffer.toString('utf-8'));
+      } else if (file.originalname.endsWith('.xlsx') || file.originalname.endsWith('.xls')) {
+        rows = this.parseExcel(file.buffer);
+      } else {
+        throw new Error('Format file tidak didukung. Gunakan CSV atau Excel (.xlsx, .xls)');
+      }
+
+      if (rows.length === 0) {
+        throw new Error('File kosong atau format tidak valid');
+      }
+
+      // Process each row
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex];
+        const rowNumber = rowIndex + 2; // +2 karena header di baris 1
+
+        try {
+          // Validasi required fields: nama dan telepon
+          if (!row.nama || !row.telepon) {
+            errors.push({
+              row: rowNumber,
+              error: 'Nama dan Telepon wajib diisi',
+              data: row
+            });
+            failed++;
+            continue;
+          }
+
+          // Normalize data
+          const pelangganData = {
+            nama: row.nama.trim(),
+            telepon: this.formatPhoneNumber(row.telepon.trim()),
+            email: row.email ? row.email.trim() : null,
+            alamat: row.alamat ? row.alamat.trim() : null,
+            gender: row.gender && ['Pria', 'Wanita'].includes(row.gender.trim()) 
+              ? row.gender.trim() 
+              : null,
+            level: row.level ? row.level.trim() : null,
+            umkm_id: umkmId
+          };
+
+          // Validasi nomor telepon
+          if (!this.isValidPhoneNumber(pelangganData.telepon)) {
+            errors.push({
+              row: rowNumber,
+              error: 'Format nomor telepon tidak valid',
+              data: row
+            });
+            failed++;
+            continue;
+          }
+
+          // Check if pelanggan dengan nomor telepon yang sama sudah ada
+          const existingPelanggan = await Pelanggan.findOne({
+            where: {
+              telepon: pelangganData.telepon,
+              umkm_id: umkmId
+            }
+          });
+
+          if (existingPelanggan) {
+            errors.push({
+              row: rowNumber,
+              error: `Nomor telepon ${pelangganData.telepon} sudah terdaftar`,
+              data: row
+            });
+            failed++;
+            continue;
+          }
+
+          // Generate kode pelanggan
+          pelangganData.kode_pelanggan = await this.generateKodePelanggan(umkmId, pelangganData.gender);
+
+          // Create pelanggan
+          const newPelanggan = await Pelanggan.create(pelangganData);
+
+          results.push({
+            row: rowNumber,
+            status: 'success',
+            pelanggan_id: newPelanggan.pelanggan_id,
+            kode_pelanggan: newPelanggan.kode_pelanggan,
+            nama: newPelanggan.nama,
+            telepon: newPelanggan.telepon
+          });
+
+          successful++;
+        } catch (rowError) {
+          failed++;
+          errors.push({
+            row: rowNumber,
+            error: rowError.message,
+            data: row
+          });
+        }
+      }
+
+      return {
+        total_rows: rows.length,
+        successful,
+        failed,
+        errors,
+        results
+      };
+    } catch (error) {
+      throw new Error(`Error saat import file: ${error.message}`);
+    }
+  }
+
+  /**
+   * Parse CSV file
+   */
+  parseCSV(csvString) {
+    const lines = csvString.trim().split('\n');
+    
+    if (lines.length < 2) {
+      return [];
+    }
+
+    // Get header
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const rows = [];
+
+    // Parse data rows
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue; // Skip empty lines
+
+      // Handle quoted fields
+      const values = this.parseCSVLine(line);
+      
+      if (values.length > 0) {
+        const row = {};
+        header.forEach((col, index) => {
+          row[col] = values[index] ? values[index].trim() : '';
+        });
+        rows.push(row);
+      }
+    }
+
+    return rows;
+  }
+
+  /**
+   * Parse single CSV line handling quoted values
+   */
+  parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (char === '"') {
+        if (insideQuotes && nextChar === '"') {
+          current += '"';
+          i++; // Skip next quote
+        } else {
+          insideQuotes = !insideQuotes;
+        }
+      } else if (char === ',' && !insideQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+
+    result.push(current);
+    return result;
+  }
+
+  /**
+   * Parse Excel file
+   */
+  parseExcel(buffer) {
+    try {
+      const XLSX = require('xlsx');
+      const workbook = XLSX.read(buffer);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      
+      // Normalize keys to lowercase
+      return rows.map(row => {
+        const normalizedRow = {};
+        Object.keys(row).forEach(key => {
+          normalizedRow[key.toLowerCase().trim()] = row[key];
+        });
+        return normalizedRow;
+      });
+    } catch (error) {
+      throw new Error(`Error parsing Excel: ${error.message}`);
+    }
+  }
+
+  /**
+   * Format phone number to international format
+   */
+  formatPhoneNumber(phone) {
+    // Remove all non-digit characters
+    let formatted = phone.replace(/\D/g, '');
+    
+    // If starts with 0, replace with 62
+    if (formatted.startsWith('0')) {
+      formatted = '62' + formatted.substring(1);
+    }
+    
+    // If doesn't start with 62, add it
+    if (!formatted.startsWith('62')) {
+      formatted = '62' + formatted;
+    }
+    
+    return formatted;
+  }
+
+  /**
+   * Validate Indonesian phone number
+   */
+  isValidPhoneNumber(phone) {
+    const formatted = this.formatPhoneNumber(phone);
+    // Indonesian phone: 62 + 8-11 digits
+    return /^628\d{8,11}$/.test(formatted);
+  }
+
 
 }
 

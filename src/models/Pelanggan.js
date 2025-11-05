@@ -5,7 +5,7 @@ const Umkm = require("./Umkm");
 const Pelanggan = sequelize.define("Pelanggan", {
   pelanggan_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   kode_pelanggan: { type: DataTypes.STRING(20), unique: true, allowNull: true },
-  nama: { type: DataTypes.STRING(100), allowNull: false },
+  nama: { type: DataTypes.STRING(100) },
   telepon: { type: DataTypes.STRING(20) },
   email: { type: DataTypes.STRING(100) },
   alamat: { type: DataTypes.TEXT }, 

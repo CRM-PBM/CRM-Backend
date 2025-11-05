@@ -141,6 +141,65 @@ class PelangganController {
       next(error);
     }
   }
+
+  /**
+   * Import pelanggan dari CSV atau Excel
+   */
+  async importPelanggan(req, res, next) {
+    const umkmId = req.umkmId;
+
+    try {
+      // Check if file exists
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'File tidak ditemukan. Silakan upload file CSV atau Excel'
+        });
+      }
+
+      // Call service untuk import
+      const result = await pelangganService.importPelangganFromFile(
+        req.file,
+        umkmId
+      );
+
+      res.json({
+        success: true,
+        message: `Import berhasil! ${result.successful} pelanggan berhasil ditambahkan`,
+        data: {
+          total_rows: result.total_rows,
+          successful: result.successful,
+          failed: result.failed,
+          errors: result.errors.length > 0 ? result.errors : undefined,
+          results: result.results
+        }
+      });
+    } catch (error) {
+      logger.error('Error importPelanggan:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Get template CSV untuk import
+   */
+  async getImportTemplate(req, res, next) {
+    try {
+      const template = `nama,telepon,email,alamat,gender,level
+Budi Santoso,628123456789,budi@example.com,Jl. Raya No. 1,Pria,Regular
+Siti Nurhaliza,628987654321,siti@example.com,Jl. Gatot Subroto No. 5,Wanita,Premium`;
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="template_pelanggan.csv"');
+      res.send(template);
+    } catch (error) {
+      logger.error('Error getImportTemplate:', error);
+      next(error);
+    }
+  }
 }
 
 module.exports = new PelangganController();

@@ -162,7 +162,8 @@ class BroadcastController {
   // GET /api/broadcast/device/status - Cek status device WhatsApp
   async checkDeviceStatus(req, res, next) {
     try {
-      const status = await broadcastService.checkDeviceStatus();
+      // Pass umkmId ke service untuk get number key dari database
+      const status = await broadcastService.checkDeviceStatus(req.umkmId);
 
       res.json({
         success: true,

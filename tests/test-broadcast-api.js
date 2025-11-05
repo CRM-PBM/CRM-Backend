@@ -117,4 +117,36 @@ async function testBroadcastAPI() {
     console.log(`   Draft broadcasts found: ${filterResponse.data.data.length}\n`);
 
   }
+  catch (error) {
+    console.error('❌ Test failed:');
+    if (error.response) {
+      console.error('   Status:', error.response.status);
+      console.error('   Message:', error.response.data.message || error.response.data);
+    } else {
+      console.error('   Error:', error.message);
+    }
+
+    // Cleanup jika ada broadcast yang dibuat
+    if (createdBroadcastId) {
+      try {
+        await axios.delete(`${BASE_URL}/broadcast/${createdBroadcastId}`);
+        console.log('\n🧹 Cleanup: Broadcast test telah dihapus');
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+
+    process.exit(1);
+  }
 }
+
+// Check if server is running
+axios.get(`${BASE_URL}/health`)
+  .then(() => {
+    console.log('✅ Server is running\n');
+    testBroadcastAPI();
+  })
+  .catch(() => {
+    console.error('❌ Server is not running. Please start the server first with: npm start');
+    process.exit(1);
+  });

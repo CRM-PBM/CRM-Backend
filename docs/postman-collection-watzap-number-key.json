@@ -1,0 +1,230 @@
+{
+  "info": {
+    "name": "Watzap Number Key API",
+    "description": "API endpoints untuk manage Watzap number key per UMKM",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Watzap Number Key",
+      "item": [
+        {
+          "name": "Get Number Key",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/watzap/number-key",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "watzap",
+                "number-key"
+              ]
+            },
+            "description": "Get Watzap number key untuk UMKM yang sedang login"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Number Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wa_number_key\": \"your_watzap_number_key_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/watzap/number-key",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "watzap",
+                "number-key"
+              ]
+            },
+            "description": "Set atau update Watzap number key untuk UMKM"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Number Key",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/watzap/number-key",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "watzap",
+                "number-key"
+              ]
+            },
+            "description": "Hapus/Clear Watzap number key untuk UMKM"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Broadcast with Number Key",
+      "item": [
+        {
+          "name": "Create Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul_pesan\": \"Promosi Spesial Kami\",\n  \"isi_pesan\": \"Halo {nama}, kami punya promosi spesial untuk Anda! Gunakan kode PROMO50 untuk diskon 50%.\",\n  \"pelanggan_ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/broadcast",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "broadcast"
+              ]
+            },
+            "description": "Create broadcast draft dengan list pelanggan"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/broadcast/{{broadcast_id}}/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "broadcast",
+                "{{broadcast_id}}",
+                "send"
+              ]
+            },
+            "description": "Send broadcast ke semua pelanggan\n\nNote: Akan menggunakan wa_number_key dari database UMKM yang sedang login"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Broadcast Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/broadcast/{{broadcast_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "broadcast",
+                "{{broadcast_id}}"
+              ]
+            },
+            "description": "Get detail broadcast termasuk status pengiriman ke setiap pelanggan"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "broadcast_id",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

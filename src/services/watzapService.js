@@ -21,12 +21,16 @@ class WatzapService {
 
   /**
    * Cek status device/koneksi WhatsApp
+   * @param {string} numberKey - Number key dari database UMKM (optional, default dari config)
    */
-  async checkDeviceStatus() {
+  async checkDeviceStatus(numberKey = null) {
     try {
+      // Gunakan number key dari parameter, fallback ke config
+      const actualNumberKey = numberKey || this.numberKey;
+
       // Watzap.id tidak memiliki endpoint cek status
       // Return success jika API key dan number key ada
-      if (!this.apiKey || !this.numberKey) {
+      if (!this.apiKey || !actualNumberKey) {
         return {
           success: false,
           connected: false,
@@ -53,11 +57,15 @@ class WatzapService {
    * Kirim pesan WhatsApp ke satu nomor
    * @param {string} phoneNumber - Nomor telepon (format: 628xxx)
    * @param {string} message - Isi pesan
+   * @param {string} numberKey - Number key dari database UMKM (optional, default dari config)
    */
-  async sendMessage(phoneNumber, message) {
+  async sendMessage(phoneNumber, message, numberKey = null) {
     try {
+      // Gunakan number key dari parameter, fallback ke config
+      const actualNumberKey = numberKey || this.numberKey;
+
       // Validasi API Key dan Number Key
-      if (!this.apiKey || !this.numberKey) {
+      if (!this.apiKey || !actualNumberKey) {
         throw new Error('API Key atau Number Key tidak dikonfigurasi');
       }
 
@@ -72,7 +80,7 @@ class WatzapService {
       // Kirim request sesuai dokumentasi Watzap.id
       const payload = {
         api_key: this.apiKey,
-        number_key: this.numberKey,
+        number_key: actualNumberKey,
         phone_no: formattedPhone,
         message: message
       };

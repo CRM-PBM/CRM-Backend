@@ -8,6 +8,7 @@ const Umkm = sequelize.define("Umkm", {
   email: { type: DataTypes.STRING(100), unique: true },
   telepon: { type: DataTypes.STRING(20) },
   alamat: { type: DataTypes.TEXT },
+  wa_number_key: { type: DataTypes.STRING(255), allowNull: true },
   tanggal_daftar: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: "UMKM",

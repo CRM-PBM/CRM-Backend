@@ -6,6 +6,7 @@ const pelangganRoutes = require("./pelanggan");
 const transaksiRoutes = require("./transaksiRoutes");
 const produkRoutes = require("./produk");
 const broadcastRoutes = require("./broadcast");
+const watzapRoutes = require("./watzapRoutes");
 
 // Basic health check (public - tidak perlu auth)
 router.get("/health", healthController.health);
@@ -15,5 +16,6 @@ router.use("/pelanggan", auth, pelangganRoutes);
 router.use("/transaksi", auth, transaksiRoutes);
 router.use("/produk", auth, produkRoutes);
 router.use("/broadcast", auth, broadcastRoutes);
+router.use("/watzap", auth, watzapRoutes);
 
 module.exports = router;

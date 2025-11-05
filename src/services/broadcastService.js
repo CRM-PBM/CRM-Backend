@@ -3,6 +3,7 @@ const sequelize = require('../config/database');
 const Broadcast = require('../models/Broadcast');
 const BroadcastDetail = require('../models/BroadcastDetail');
 const Pelanggan = require('../models/Pelanggan');
+const Umkm = require('../models/Umkm');
 const watzapService = require('./watzapService');
 const logger = require('../utils/logger');
 
@@ -190,6 +191,19 @@ class BroadcastService {
       throw new Error('Broadcast tidak ditemukan');
     }
 
+    // Ambil UMKM untuk mendapatkan number_key
+    const umkm = await Umkm.findByPk(broadcast.umkm_id, {
+      attributes: ['umkm_id', 'wa_number_key']
+    });
+
+    if (!umkm) {
+      throw new Error('UMKM tidak ditemukan');
+    }
+
+    if (!umkm.wa_number_key) {
+      throw new Error('Number key Watzap.id belum dikonfigurasi untuk UMKM ini. Silakan set number key terlebih dahulu.');
+    }
+
     const details = broadcast.BroadcastDetails || [];
     
     if (details.length === 0) {
@@ -218,10 +232,11 @@ class BroadcastService {
           pelanggan
         );
 
-        // Kirim via Watzap
+        // Kirim via Watzap dengan number_key dari database UMKM
         const result = await watzapService.sendMessage(
           pelanggan.telepon,
-          personalizedMessage
+          personalizedMessage,
+          umkm.wa_number_key
         );
 
         if (result.success) {
@@ -400,8 +415,31 @@ class BroadcastService {
   }
 
   // Cek status device WhatsApp
-  async checkDeviceStatus() {
-    return await watzapService.checkDeviceStatus();
+  async checkDeviceStatus(umkmId) {
+    try {
+      // Fetch UMKM untuk get wa_number_key dari database
+      if (umkmId) {
+        const Umkm = require('../models/Umkm');
+        const umkm = await Umkm.findByPk(umkmId, {
+          attributes: ['umkm_id', 'wa_number_key']
+        });
+
+        if (umkm && umkm.wa_number_key) {
+          // Use number key dari database
+          return await watzapService.checkDeviceStatus(umkm.wa_number_key);
+        }
+      }
+
+      // Fallback: gunakan number key dari config
+      return await watzapService.checkDeviceStatus();
+    } catch (error) {
+      logger.error('Error checking device status:', error);
+      return {
+        success: false,
+        connected: false,
+        error: error.message
+      };
+    }
   }
 }
 

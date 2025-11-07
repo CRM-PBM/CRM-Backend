@@ -3,7 +3,9 @@ const cors = require('cors');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 
+
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes')
 const transaksiRoutes = require('./routes/transaksiRoutes')
 const pelangganRoutes = require('./routes/pelanggan')
@@ -34,6 +36,8 @@ app.use('/api/pelanggan', pelangganRoutes);
 app.use('/api/kategori', kategoriRoutes);
 app.use('/api/jenis', jenisProdukRoutes);
 app.use('/api/laporan', laporanRoutes);
+
+app.use('/api/admin', adminRoutes);
 
 
 // health endpoint

@@ -8,6 +8,9 @@ const Umkm = sequelize.define("Umkm", {
   email: { type: DataTypes.STRING(100), unique: true },
   telepon: { type: DataTypes.STRING(20) },
   alamat: { type: DataTypes.TEXT },
+  status: { type: DataTypes.ENUM("pending", "active", "suspended"), defaultValue: "pending", allowNull: false },
+  verified_by: {type: DataTypes.INTEGER, allowNull: true },
+  verified_at: {type: DataTypes.DATE, allowNull: true },
   tanggal_daftar: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: "UMKM",

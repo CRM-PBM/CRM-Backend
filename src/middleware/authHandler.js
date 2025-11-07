@@ -14,7 +14,8 @@ const auth = (req, res, next) => {
         const decoded = jwt.verify(tokenString, process.env.JWT_SECRET);
         
         req.userId = decoded.userId; 
-        req.umkmId = decoded.umkmId 
+        req.umkmId = decoded.umkmId;
+        req.userRole = decoded.role;
         
         next(); // Lanjutkan ke controller
     } catch (err) {

@@ -9,7 +9,6 @@ exports.getAllUmkm = async (req, res) => {
             data: umkmList 
         });
     } catch (error) {
-        // Log error di server
         console.error("Error in getAllUmkm:", error.message);
         res.status(500).json({ msg: 'Gagal mengambil daftar UMKM global.' });
     }
@@ -21,10 +20,10 @@ exports.verifyUmkm = async (req, res) => {
     const adminId = req.userId; 
 
     try {
-        const updatedUmkm = await adminService.verifyUmkm(umkmId, adminId);
+        const updatedUmkm = await adminService.verifyUmkm(umkmId, adminId); // updatedUmkm kini adalah instance UMKM
         res.status(200).json({ 
-            msg: `UMKM ${updatedUmkm.nama_umkm} berhasil diverifikasi dan diaktifkan.`,
-            umkm: updatedUmkm 
+            msg: `UMKM ${updatedUmkm.nama_umkm} berhasil diverifikasi dan diaktifkan.`, // <-- AKSES NAMA UMKM DENGAN BENAR
+            umkm: updatedUmkm.toJSON() 
         });
     } catch (error) {
         const statusCode = error.message.includes('ditemukan') ? 404 : 400;
@@ -37,10 +36,10 @@ exports.suspendUmkm = async (req, res) => {
     const { umkmId } = req.params;
     
     try {
-        const updatedUmkm = await adminService.suspendUmkm(umkmId);
+        const updatedUmkm = await adminService.suspendUmkm(umkmId); // updatedUmkm kini adalah instance UMKM
         res.status(200).json({ 
-            msg: `UMKM ${updatedUmkm.nama_umkm} berhasil ditangguhkan.`,
-            umkm: updatedUmkm 
+            msg: `UMKM ${updatedUmkm.nama_umkm} berhasil ditangguhkan.`, // INI SUDAH BENAR
+            umkm: updatedUmkm.toJSON() 
         });
     } catch (error) {
         const statusCode = error.message.includes('ditemukan') ? 404 : 400;
@@ -64,7 +63,6 @@ exports.getGlobalStats = async (req, res) => {
 
 // [GET] /api/admin/stats/umkm-growth
 exports.getUmkmGrowthData = async (req, res) => {
-    // Ambil parameter periode dari query string (misal: ?period=year)
     const period = req.query.period || 'month'; 
     try {
         const data = await adminService.getUmkmGrowthData(period);

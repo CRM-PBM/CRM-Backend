@@ -4,6 +4,8 @@ const Transaksi = require('../models/Transaksi');
 const { Sequelize, DataTypes, fn, col, literal, Op } = require('sequelize');
 const sequelize = require('../config/database');
 
+const { sendVerificationSuccessEmail } = require('../utils/emailService');
+
 // Mengambil SEMUA daftar UMKM (tanpa filter umkm_id)
 exports.getAllUmkm = async () => {
     const umkmList = await Umkm.findAll({
@@ -35,13 +37,24 @@ exports.verifyUmkm = async (umkmId, adminId) => {
         throw new Error('UMKM ini sudah aktif.'); 
     }
 
+    // 1. Update status di database
     await umkm.update({
         status: 'active',
         verified_by: adminId,
         verified_at: new Date()
     });
 
-    return umkm;
+    // 2. Kirim Notifikasi Otomatis
+    try {
+        await sendVerificationSuccessEmail(
+            umkm.email,        
+            umkm.nama_umkm // Mengakses properti langsung dari instance Sequelize
+        );
+    } catch (emailError) {
+        console.error('Error saat memicu notifikasi email:', emailError);
+    }
+    
+    return umkm; 
 };
 
 // Logika untuk menangguhkan/mensuspend UMKM
@@ -56,12 +69,11 @@ exports.suspendUmkm = async (umkmId) => {
         throw new Error('UMKM ini sudah ditangguhkan.');
     }
 
-    // Update status menjadi suspended
     await umkm.update({
         status: 'suspended'
     });
 
-    return umkm;
+    return umkm; 
 };
 
 // [GET] Mengambil metrik utama (Cards)
@@ -82,36 +94,33 @@ exports.getGlobalStats = async () => {
 
 // [GET] Mengambil data pertumbuhan UMKM (untuk Grafik)
 exports.getUmkmGrowthData = async (period = 'month') => {
-    // 1. Menentukan format SQL berdasarkan periode
     let groupFormat;
     let labelKey;
 
     switch (period) {
         case 'day':
-            groupFormat = '%Y-%m-%d'; // Grouping per hari
+            groupFormat = '%Y-%m-%d';
             labelKey = 'tanggal';
             break;
         case 'week':
-            groupFormat = '%Y-%v'; // Grouping per minggu (Tahun-Minggu ke-)
+            groupFormat = '%Y-%v';
             labelKey = 'minggu';
             break;
         case 'year':
-            groupFormat = '%Y'; // Grouping per tahun
+            groupFormat = '%Y';
             labelKey = 'tahun';
             break;
         case 'month':
         default:
-            groupFormat = '%Y-%m'; // Grouping per bulan
+            groupFormat = '%Y-%m';
             labelKey = 'bulan';
             break;
     }
     
-    // 2. Query untuk menghitung UMKM BARU (berdasarkan tanggal_daftar)
     const newUmkmData = await Umkm.findAll({
         attributes: [
-            // Alias: 'period' akan berisi hasil grouping (misal: '2025-10')
             [fn('date_format', col('tanggal_daftar'), groupFormat), 'period'], 
-            [fn('count', col('umkm_id')), 'new_count'] // Alias: 'new_count'
+            [fn('count', col('umkm_id')), 'new_count']
         ],
         where: {
             status: {
@@ -122,26 +131,23 @@ exports.getUmkmGrowthData = async (period = 'month') => {
         order: [[literal('period'), 'ASC']] 
     });
     
-    // 3. Mengkonversi hasil Sequelize menjadi Map untuk penggabungan & menghitung kumulatif
     const newMap = new Map(newUmkmData.map(item => [
         item.get('period'), 
         item.get('new_count')
     ]));
     
-    // 4. Hitung Kumulatif Aktif (Simulasi UMKM Lama/Akumulasi)
     let cumulativeActive = 0;
     const allPeriods = [...newMap.keys()].sort(); 
     
     const formattedData = allPeriods.map(periodKey => {
         const newCount = parseInt(newMap.get(periodKey), 10) || 0;
         
-        // Akumulasi UMKM Aktif
         cumulativeActive += newCount; 
         
         return {
-            [labelKey]: periodKey,                  // Label (Bulan/Tahun/Hari)
-            new_umkm: newCount,                     // Jumlah UMKM Baru pada periode ini
-            cumulative_active_umkm: cumulativeActive // Total Akumulasi Aktif hingga periode ini
+            [labelKey]: periodKey,
+            new_umkm: newCount,
+            cumulative_active_umkm: cumulativeActive
         };
     });
 

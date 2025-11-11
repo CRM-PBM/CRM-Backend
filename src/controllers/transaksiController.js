@@ -1,9 +1,24 @@
-// CRM-backend/src/controllers/transaksiController.js (FULL CODE)
 const transaksiService = require('../services/transaksiService');
 const logger = require('../utils/logger');
 
 class TransaksiController {
-    // GET /api/transaksi - Get all transaksi
+    async getTransaksiGrowthData(req, res, next) {
+        const umkmId = req.umkmId;
+        try {
+            const period = req.query.period || 'day'; 
+            
+            const data = await transaksiService.getTransaksiGrowthData(umkmId, period);
+            res.json({
+                success: true,
+                message: 'Data pertumbuhan transaksi berhasil diambil',
+                data,
+            });
+        } catch (error) {
+            logger.error('Error getTransaksiGrowthData:', error);
+            next(error);
+        }
+    }
+
     async getAllTransaksi(req, res, next) {
         const umkmId = req.umkmId;
         try {
@@ -30,7 +45,6 @@ class TransaksiController {
         }
     }
 
-    // GET /api/transaksi/:id - Get transaksi by ID
     async getTransaksiById(req, res, next) {
         try {
             const { id } = req.params;
@@ -53,12 +67,11 @@ class TransaksiController {
         }
     }
 
-    // POST /api/transaksi - Create new transaksi
     async createTransaksi(req, res, next) {
-        const umkmId = req.umkmId; // Ambil ID dari token
+        const umkmId = req.umkmId; 
         const dataToSend = {
             ...req.body,
-            umkm_id: umkmId // Inject umkm_id
+            umkm_id: umkmId 
         };
 
         try {
@@ -86,7 +99,6 @@ class TransaksiController {
         }
     }
 
-    // PUT /api/transaksi/:id - Update transaksi
     async updateTransaksi(req, res, next) {
         try {
             const { id } = req.params;
@@ -109,7 +121,6 @@ class TransaksiController {
         }
     }
 
-    // DELETE /api/transaksi/:id - Delete transaksi
     async deleteTransaksi(req, res, next) {
         try {
             const { id } = req.params;
@@ -131,7 +142,6 @@ class TransaksiController {
         }
     }
 
-    // GET /api/pelanggan/:pelanggan_id/transaksi - Get transaksi by pelanggan
     async getTransaksiByPelanggan(req, res, next) {
         try {
             const { pelanggan_id } = req.params;
@@ -153,7 +163,6 @@ class TransaksiController {
         }
     }
 
-    // GET /api/transaksi/statistik - Get statistik transaksi
     async getStatistik(req, res, next) {
         const umkmId = req.umkmId; 
         try {

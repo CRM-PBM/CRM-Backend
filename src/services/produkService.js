@@ -1,8 +1,7 @@
 const Produk = require('../models/Produk');
 const JenisProduk = require('../models/JenisProduk');
-const kategoriProduk = require('../models/KategoriProduk');
 const { Op } = require('sequelize');
-const sequelize = require('../config/database')
+const sequelize = require('../config/database');
 
 
 class ProdukService {
@@ -15,11 +14,9 @@ class ProdukService {
     const umkmCode = String(umkmId).padStart(2, '0');
     const produkCode = String(produkId).padStart(2, '0'); 
 
-    // Format: PROD0102003
     return `PROD${umkmCode}${jenisCode}${produkCode}`;
   }
 
-  // Get all produk
   async getAllProduk(filters = {}, umkmId) {
     const { page = 1, limit = 10, aktif, search } = filters;
     const offset = (page - 1) * limit;
@@ -37,7 +34,7 @@ class ProdukService {
       limit: parseInt(limit),
       offset: parseInt(offset),
       order: [['produk_id', 'DESC']],
-      includes: [JenisProduk, ]
+      include: [{ model: JenisProduk, attributes: ['jenis_produk_id', 'nama_jenis'] }] 
     });
 
     return {
@@ -58,10 +55,9 @@ class ProdukService {
         include: [require('../models/KategoriProduk')], 
         order: [['nama_jenis', 'ASC']]
     });
-    return { success: true, data: list }; 
-}
+    return { success: true, data: list };
+  }
 
-  // Get produk by ID
   async getProdukById(id) {
     const produk = await Produk.findByPk(id);
     if (!produk) {
@@ -70,7 +66,6 @@ class ProdukService {
     return produk;
   }
 
-  // Create produk
   async createProduk(data) {
     const { nama_produk, jenis_produk_id, harga, stok, aktif, umkm_id } = data;
     const umkmId = umkm_id;
@@ -90,7 +85,6 @@ class ProdukService {
     try {
         t = await sequelize.transaction();
 
-        // 1. CREATE PRODUK AWAL (Untuk mendapatkan produk_id yang di-auto-generate)
         const produk = await Produk.create({
             nama_produk,
             jenis_produk_id, 
@@ -118,7 +112,6 @@ class ProdukService {
     }
   }
 
-  // Update produk
   async updateProduk(id, data) {
     const produk = await Produk.findByPk(id);
     if (!produk) {
@@ -137,7 +130,6 @@ class ProdukService {
     return produk;
   }
 
-  // Delete produk
   async deleteProduk(id) {
     const produk = await Produk.findByPk(id);
     if (!produk) {
@@ -177,7 +169,6 @@ class ProdukService {
       throw error;
     }
   }
-
 
   async toggleActive(id, umkmId) {
     const produk = await Produk.findOne({

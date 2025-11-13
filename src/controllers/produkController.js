@@ -25,8 +25,9 @@ class ProdukController {
   }
 
   async getJenisProduk(req, res, next) {
+    const umkmId = req.umkmId;
     try {
-        const result = await produkService.getJenisProduk();
+        const result = await produkService.getJenisProduk(umkmId);
         res.json({ success: true, message: 'Data jenis produk berhasil diambil', data: result.data });
     } catch (error) { 
         logger.error('Error getJenisProduk:', error);

@@ -18,7 +18,13 @@ class ProdukService {
   }
 
   async getAllProduk(filters = {}, umkmId) {
-    const { page = 1, limit = 10, aktif, search } = filters;
+    const { 
+      page = 1, 
+      limit = 10, 
+      aktif, 
+      search 
+    } = filters;
+
     const offset = (page - 1) * limit;
     
     const where = { umkm_id: umkmId };
@@ -26,7 +32,11 @@ class ProdukService {
     if (aktif !== undefined) where.aktif = aktif === 'true';
     
     if (search) {
-      where.nama_produk = { [Op.like]: `%${search}%` };
+        where[Op.or] = [
+          { nama_produk: { [Op.like]: `%${search}%` } },
+          { kode_produk: { [Op.like]: `%${search}%` } },
+          { '$JenisProduk.nama_jenis$': { [Op.like]: `%${search}%` } }
+      ];
     }
 
     const { count, rows } = await Produk.findAndCountAll({
@@ -48,9 +58,14 @@ class ProdukService {
     };
   }
 
-  async getJenisProduk() {
+  async getJenisProduk(umkmId) {
     const JenisProdukModel = require('../models/JenisProduk');
+    const where = { umkm_id: umkmId };
+
+
+
     const list = await JenisProdukModel.findAll({
+        where,
         attributes: ['jenis_produk_id', 'nama_jenis', 'kategori_id'], 
         include: [require('../models/KategoriProduk')], 
         order: [['nama_jenis', 'ASC']]
@@ -118,13 +133,14 @@ class ProdukService {
       throw new Error('Produk tidak ditemukan');
     }
 
-    const { nama_produk, harga, stok, aktif } = data;
+    const { nama_produk, harga, stok, aktif, jenis_produk_id } = data;
 
     await produk.update({
       nama_produk: nama_produk || produk.nama_produk,
       harga: harga !== undefined ? harga : produk.harga,
       stok: stok !== undefined ? stok : produk.stok,
-      aktif: aktif !== undefined ? aktif : produk.aktif
+      aktif: aktif !== undefined ? aktif : produk.aktif,
+      jenis_produk_id: jenis_produk_id !== undefined ? jenis_produk_id : produk.jenis_produk_id,
     });
 
     return produk;

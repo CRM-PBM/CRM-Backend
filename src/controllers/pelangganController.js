@@ -19,8 +19,7 @@ class PelangganController {
             res.json({
                 success: true,
                 message: 'Data pelanggan berhasil diambil',
-                data: result.data,
-                pagination: result.pagination
+                ...result
             });
 
         } catch (error) {

@@ -108,8 +108,8 @@ class PelangganService {
             data: rows,
             pagination: {
                 total: count,
-                page: page,
-                limit: limit,
+                page: parseInt(page),
+                limit: parseInt(limit),
                 totalPages: Math.ceil(count / limit)
             }
         };

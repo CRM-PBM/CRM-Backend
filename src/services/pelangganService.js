@@ -66,7 +66,15 @@ class PelangganService {
     } 
 
     async getAllPelanggan(filters = {}, umkmId) {
-        const { page = 1, limit = 10, umkm_id, level, gender, search } = filters;
+        const { 
+            page = 1, 
+            limit = 10, 
+            umkm_id, 
+            level, 
+            gender, 
+            search 
+        } = filters;
+
         const offset = (page - 1) * limit;
 
         const where = { umkm_id: umkmId };
@@ -79,13 +87,18 @@ class PelangganService {
                 { nama: { [Op.like]: `%${search}%` } },
                 { email: { [Op.like]: `%${search}%` } },
                 { telepon: { [Op.like]: `%${search}%` } },
-                { alamat: { [Op.like]: `%${search}%` } }
+                { alamat: { [Op.like]: `%${search}%` } },
+                { gender: { [Op.like]: `%${search}%` } },
+                { level: { [Op.like]: `%${search}%` } }
             ];
         }
 
         const { count, rows } = await Pelanggan.findAndCountAll({
             where,
-            include: [{ model: Umkm, attributes: ['umkm_id', 'nama_umkm'] }],
+            include: [
+                {   model: Umkm, 
+                    attributes: ['umkm_id', 'nama_umkm'] 
+                }],
             limit: parseInt(limit),
             offset: parseInt(offset),
             order: [['created_at', 'DESC']]
@@ -95,8 +108,8 @@ class PelangganService {
             data: rows,
             pagination: {
                 total: count,
-                page: parseInt(page),
-                limit: parseInt(limit),
+                page: page,
+                limit: limit,
                 totalPages: Math.ceil(count / limit)
             }
         };

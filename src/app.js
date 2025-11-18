@@ -2,11 +2,13 @@ const express = require('express');
 const cors = require('cors'); 
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes')
 const transaksiRoutes = require('./routes/transaksiRoutes')
 const pelangganRoutes = require('./routes/pelanggan')
+const waBlastRoutes = require('./routes/WaBlastRoutes')
 
 const app = express();
 
@@ -19,15 +21,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files (public)
-app.use(express.static('public'));
-
 // API routes
 app.use('/api', routes);
 app.use('/api/auth', authRoutes); 
 app.use('/api/invoice', invoiceRoutes);
 app.use('/api/transaksi', transaksiRoutes);
 app.use('/api/pelanggan', pelangganRoutes);
+app.use('/api/wa-blast', waBlastRoutes);
 
 
 // health endpoint

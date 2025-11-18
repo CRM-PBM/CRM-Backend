@@ -9,6 +9,7 @@ const BroadcastDetail = require("./models/BroadcastDetail");
 const Transaksi = require("./models/Transaksi");
 const DetailTransaksi = require("./models/DetailTransaksi");
 const Invoice = require("./models/Invoice");
+const WaBlastLog = require("./models/WaBlastLog");
 
 (async () => {
   try {

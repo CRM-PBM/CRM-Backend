@@ -6,6 +6,7 @@ const pelangganRoutes = require("./pelanggan");
 const transaksiRoutes = require("./transaksiRoutes");
 const produkRoutes = require("./produk");
 const broadcastRoutes = require("./broadcast");
+const waBlastRoutes = require("./WaBlastRoutes");
 
 // Basic health check (public - tidak perlu auth)
 router.get("/health", healthController.health);
